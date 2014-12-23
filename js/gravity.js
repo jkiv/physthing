@@ -109,7 +109,7 @@ gthing.Gravity.testScene1 = function() {
   // ... make it like a sun
   planet.mesh.material.color = new THREE.Color(0xffff00);
   planet.mesh.material.emissive = new THREE.Color(0x606000);
-  planet.mesh.add(new THREE.PointLight(0xffffff, 0.5, 100));
+  planet.mesh.add(new THREE.PointLight(0xffffff, 0.5, 1e6));
   
   gthing.scene.remove(gthing.camera);
   planet.mesh.add(gthing.camera);
@@ -123,7 +123,7 @@ gthing.Gravity.testScene1 = function() {
   
   planet.mesh.translateX(-100);
   //planet.physics.position = planet.mesh.position;
-  planet.physics.velocity = new THREE.Vector3(0,-220,0);
+  planet.physics.velocity = new THREE.Vector3(0,-30,0);
   gthing.gravity.add(planet);
   
   // Add planet three -- like a Moon

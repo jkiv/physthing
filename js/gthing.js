@@ -27,8 +27,7 @@ gthing.go = function() {
 // Render loop
 gthing.loop = function() {
   // Get time delta since last frame
-  var timedelta = gthing.clock.getDelta() / 10;
-  timedelta = 1./60.; // fix timestep for consistent physics
+  var timedelta = gthing.clock.getDelta();
   
   // Read input -- dispatch events
   // TODO
