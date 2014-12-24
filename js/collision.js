@@ -6,12 +6,6 @@ physthing.Collision = function() {
  * Compute and add collision forces for two interacting bodies [a] and [b].
  */
 physthing.Collision.prototype.applyBodyForces = function(a, b) {
-  // As long as two objects are colliding, a force should exist
-  // to prevent the velocity from translating the objects over
-  // one another any further. To do this,
-  // 1. Apply a force that cancels out acceleration along normal.
-  // 2. Apply one force to cancel out velocity along normal.
-
   var abVector = b.physics.position.clone().sub(a.physics.position);
   
   // Get collision normal(s)
@@ -33,13 +27,23 @@ physthing.Collision.prototype.applyBodyForces = function(a, b) {
   a.physics.forces.push(netForceA);
   b.physics.forces.push(netForceB);
   
-  // Cancel out velocity along normal
-  // TODO transfer velocity along normal based on masses and velocities
-  a.physics.velocity.sub(a.physics.velocity.clone().projectOnVector(normA));
-  b.physics.velocity.sub(b.physics.velocity.clone().projectOnVector(normB));
+  // Perform elastic collision //
+  var ua = a.physics.velocity.clone().projectOnVector(normA);
+  var ub = b.physics.velocity.clone().projectOnVector(normB);
+  var ma = a.physics.mass;
+  var mb = b.physics.mass;
+  var M = ma + mb;
   
-  // Cancel out overlap
+  var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
+  var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
   
+  // Remove ua, ub components
+  a.physics.velocity.sub(ua);
+  b.physics.velocity.sub(ub);
+  
+  // Replace ua, ub with new velocities va, vb
+  a.physics.velocity.add(va);
+  b.physics.velocity.add(vb);
 }
 
 /**
@@ -119,23 +123,26 @@ physthing.Collision.prototype.remove = function(body) {
  * Collision test scene (1).
  */
 physthing.Collision.testScene1 = function() {
-  // Add a grid of planets with gravity and collision
-  
   var n = 5;
   var m = 5;
+  var mass = 10e3;
+  var radius = 10;
+  var collisionRadius = 1e9;
   
+  // Add a grid of planets with gravity and collision
   for(var r = -n/2; r < n/2; r++) {
     for(var c = -m/2; c < m/2; c++) {
-      var planet = new physthing.Planet(10, 1e3, 1e9);
-      var grey = (Math.random() + 0.5) / 1.5;
-      planet.mesh.material.color = new THREE.Color(grey,
-                                                   grey,
-                                                   grey);
+      // Construct base planet
+      var planet = new physthing.Planet(radius, mass, collisionRadius);
       physthing.entities.push(planet);  // tell game loop to handle this object
       physthing.gravity.add(planet);    // tell gravity to handle this object
       physthing.collision.add(planet);  // tell collision to handle this object
       physthing.scene.add(planet.mesh); // put object in scene
       
+      // Customize planet
+      var grey = (Math.random() + 0.5) / 1.5;
+      planet.mesh.material.color = new THREE.Color(grey, grey, grey);
+      planet.physics.velocity = new THREE.Vector3(-20*r, 20*c, 0);
       planet.mesh.translateX(c*50);
       planet.mesh.translateY(r*50);
     }
