@@ -19,13 +19,8 @@ physthing.go = function() {
   // Initialize scene components
   physthing.initalizeScene();
   
-  // ADD TEST PLANETS ////
-  physthing.Gravity.testScene1();
-  ////////////////////////
-  
-  
-  physthing.camera.zoom += 0.1;
-  physthing.camera.updateProjectionMatrix();
+  physthing.Gravity.testScene1();   // Gravity test scene (1)
+  //physthing.Collision.testScene1(); // Collision test scene (1)
   
   // Start game loop
   physthing.loop();
@@ -46,17 +41,17 @@ physthing.loop = function() {
   timedelta = Math.min(1/30., timedelta); // clamp to 30 fps (for physics)
   
   // Perform gravity interactions and apply gravitational forces
-  physthing.gravity.updateForces();
+  physthing.gravity.update(timedelta);
   
   // Perform collisions and apply constraints
-  physthing.collision.applyConstraints();
+  physthing.collision.update(timedelta);
   
-  // Accumulate forces and update positions
+  // TODO we want to apply thrust via keyboard /before/ collision.update()
+ 
+  // Update positions
   _.forEach(physthing.entities, function(entity) {
-    entity.updatePosition(timedelta);
+    entity.update(timedelta);
   });
-  
-  physthing.camera.updateProjectionMatrix();
   
   // Render scene
   requestAnimationFrame(physthing.loop); // using built-in browser animation API
@@ -93,6 +88,7 @@ physthing.initalizeScene = function() {
   // Add camera to scene
   scene.add(camera);
   camera.position.z = 300;
+  camera.zoom = 0.7;
 
   // Add ambient light to scene
   var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
@@ -131,7 +127,7 @@ physthing.initalizeScene = function() {
     var minZoom = 0.1;
     
     var zoom = physthing.camera.zoom;
-    var step = 0.1;
+    var step = 0.05;
     
     // Compute new zoom value
     if (e.delta > 0.0) {
@@ -146,7 +142,6 @@ physthing.initalizeScene = function() {
     zoom = Math.min(maxZoom, Math.max(minZoom, zoom));
 
     // Zoom camera
-    console.log(zoom);
     physthing.camera.zoom = zoom;
     physthing.camera.updateProjectionMatrix();
   });

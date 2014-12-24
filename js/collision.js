@@ -5,7 +5,7 @@ physthing.Collision = function() {
 /**
  * Compute and add collision forces for two interacting bodies [a] and [b].
  */
-physthing.Collision.prototype.applyBodyForces = function(a, b) {
+physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   var abVector = b.physics.position.clone().sub(a.physics.position);
   
   // Get collision normal(s)
@@ -59,7 +59,6 @@ physthing.Collision.prototype.inInteractionRange = function(a, b) {
   return distance <= maximumDistance;
 }
 
-
 physthing.Collision.prototype.findInteractingBodies = function(bodies){
   var visitedFrom = [];
   var pairs = [];
@@ -98,12 +97,14 @@ physthing.Collision.prototype.findInteractingBodies = function(bodies){
 }
 
 /**
- *
+ * Update collision resolver.
  */
-physthing.Collision.prototype.applyConstraints = function() {
+physthing.Collision.prototype.update = function(timedelta) {
   var that = this;
+  
+  // Apply body forces/constraints to colliding objects
   _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
-    that.applyBodyForces(pair[0], pair[1]);
+    that.performCollisionConstraints(pair[0], pair[1]);
   });
 }
 

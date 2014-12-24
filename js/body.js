@@ -45,7 +45,7 @@ physthing.Planet = function ( radius, mass, gravityRadius ) {
 /**
  * Accumulate applied forces and update position.
  */
-physthing.Planet.prototype.updatePosition = function(timedelta) {
+physthing.Planet.prototype.update = function(timedelta) {
   // Accumulate forces
   var netForce = _.reduce(this.physics.forces, function(net, force) {
     return net.add(force);
@@ -72,4 +72,52 @@ physthing.Planet.prototype.updatePosition = function(timedelta) {
   // Update physics
   //this.physics.position = this.mesh.position; // same vector reference
   this.physics.angle += this.physics.rotationDelta;
+}
+
+////////////////////
+
+physthing.Ship = function( fuel ) {
+  // Three.js representation
+  var material = new THREE.MeshLambertMaterial({
+    color:   0xffffff,
+    ambient: 0x000000,
+    fog:     true
+  });
+  var geometry = new THREE.BoxGeometry(1,1,1); 
+  this.mesh = new THREE.Mesh( geometry, material );
+  
+  ///
+  var mass = 5;
+  var radius = 1e9;
+  
+  // Physics
+  // TODO right now we just put everything in a blob.
+  this.physics = {
+    position: this.mesh.position, // reference position in mesh
+    velocity: new THREE.Vector3(),
+    angle: new THREE.Vector3(),
+    angularVelocity: 0,
+    angularAxis: new THREE.Vector3(0,0,1),
+    mass: mass || 1.0,
+    inverseMass: ( 1.0 / mass ) || 1.0,
+    forces: [],
+    // Gravity
+    gravity: {
+      interactionRadius: gravityRadius || 0.0
+    },
+    // Collision
+    collision: {
+      type: 'radius',
+      radius: radius || 100.0,
+      damping: 0.6
+    }
+  }
+  
+  // Other ship state
+  this.thrustOn = false;
+}
+
+physthing.Ship.prototype.update = function(timedelta) {
+  // TODO add thrust force if thrusting  
+  // TODO call update on prototype (update of position)
 }
