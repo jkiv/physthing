@@ -23,6 +23,10 @@ physthing.go = function() {
   physthing.Gravity.testScene1();
   ////////////////////////
   
+  
+  physthing.camera.zoom += 0.1;
+  physthing.camera.updateProjectionMatrix();
+  
   // Start game loop
   physthing.loop();
 }
@@ -52,7 +56,6 @@ physthing.loop = function() {
     entity.updatePosition(timedelta);
   });
   
-  physthing.camera.zoom = 0.5;
   physthing.camera.updateProjectionMatrix();
   
   // Render scene
@@ -65,7 +68,8 @@ physthing.loop = function() {
  */
 physthing.initalizeScene = function() {
   // Grab target DOM object
-  var container = $("#container");
+  var container = document.createElement('div');
+	document.body.appendChild(container);
 
   // Create render target
   var renderer = new THREE.WebGLRenderer({
@@ -73,21 +77,14 @@ physthing.initalizeScene = function() {
   });
   
   // Create camera
-  var renderProperties = {
-    width: container.width(),
-    height: container.height(),
-    near: 0.1,
-    far: 10000
-  };
-  
   var camera =
     new THREE.OrthographicCamera(
-      renderProperties.width / - 2,
-      renderProperties.width / 2,
-      renderProperties.height / 2,
-      renderProperties.height / - 2,
-      renderProperties.near,
-      renderProperties.far
+      -window.innerWidth/2,
+      window.innerWidth/2,
+      window.innerHeight/2,
+      -window.innerHeight/2,
+      0.1,
+      1000
     );
   
   // Create a scene
@@ -103,13 +100,8 @@ physthing.initalizeScene = function() {
   scene.add(directionalLight);
   
   // Put render target into page
-  renderer.setSize(renderProperties.width, renderProperties.height);
-  container.append(renderer.domElement);
-  
-  // Resize the renderer on resize of window/div
-  container.bind('resize', function(e){
-    // TODO resize renderer
-  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
   
   // Hold references for future use
   physthing.scene = scene;
@@ -118,10 +110,46 @@ physthing.initalizeScene = function() {
   physthing.clock = new THREE.Clock(true);
   physthing.collision = new physthing.Collision();
   physthing.gravity = new physthing.Gravity();
-  physthing.input = new physthing.Input();
+  physthing.input = new physthing.Input(container);
   
-  //
-  physthing.input.init(container[0]);
+  // Set up input callbacks
+  physthing.input.registerListener('window.resize', function(e) {
+    // Update camera
+    physthing.camera.left = -window.innerWidth / 2;
+    physthing.camera.right = window.innerWidth / 2;
+    physthing.camera.top = window.innerHeight / 2;
+    physthing.camera.bottom = -window.innerHeight / 2;
+    physthing.camera.updateProjectionMatrix();
+
+    // Update renderer
+    physthing.renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  
+  physthing.input.registerListener('mouse.scroll', function(e) {
+    // TODO camera.zoomVelocity + drag force + update()
+    var maxZoom = 10.;
+    var minZoom = 0.1;
+    
+    var zoom = physthing.camera.zoom;
+    var step = 0.1;
+    
+    // Compute new zoom value
+    if (e.delta > 0.0) {
+      // Zoom in
+      zoom += step;
+    }
+    else {
+      // Zoom out
+      zoom -= step;
+    }
+    
+    zoom = Math.min(maxZoom, Math.max(minZoom, zoom));
+
+    // Zoom camera
+    console.log(zoom);
+    physthing.camera.zoom = zoom;
+    physthing.camera.updateProjectionMatrix();
+  });
 }
 
 /**
