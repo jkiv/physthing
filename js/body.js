@@ -13,8 +13,8 @@ physthing.Planet = function ( radius, mass, gravityRadius ) {
     fog:     true
   });
 
-  var geometry = new THREE.CircleGeometry( radius, 64 );
-              // new THREE.SphereGeometry( radius, 64, 64 ); 
+  //var geometry = new THREE.CircleGeometry( radius, 64 );
+  var geometry = new THREE.SphereGeometry( radius, 32, 32 ); 
 
   this.mesh = new THREE.Mesh( geometry, material );
   

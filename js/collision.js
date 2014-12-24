@@ -12,7 +12,7 @@ physthing.Collision.prototype.applyBodyForces = function(a, b) {
   var normA = abVector.normalize();   // a->b
   var normB = normA.clone().negate(); // b->a
   
-  // Cancel out acceleration along normal
+  // Cancel out acceleration along normal to avoid further penetration //
   var netForceA = _.reduce(a.physics.forces, function(net, force) {
     return net.add(force);
   }, new THREE.Vector3());
@@ -27,23 +27,25 @@ physthing.Collision.prototype.applyBodyForces = function(a, b) {
   a.physics.forces.push(netForceA);
   b.physics.forces.push(netForceB);
   
-  // Perform elastic collision //
+  // Perform elastic collision along collision normal //
   var ua = a.physics.velocity.clone().projectOnVector(normA);
   var ub = b.physics.velocity.clone().projectOnVector(normB);
   var ma = a.physics.mass;
   var mb = b.physics.mass;
   var M = ma + mb;
   
-  var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
-  var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
-  
-  // Remove ua, ub components
-  a.physics.velocity.sub(ua);
-  b.physics.velocity.sub(ub);
-  
-  // Replace ua, ub with new velocities va, vb
-  a.physics.velocity.add(va);
-  b.physics.velocity.add(vb);
+  if (M !== 0) {
+    var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
+    var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
+    
+    // Remove ua, ub components
+    a.physics.velocity.sub(ua);
+    b.physics.velocity.sub(ub);
+    
+    // Replace ua, ub with new velocities va, vb
+    a.physics.velocity.add(va);
+    b.physics.velocity.add(vb);
+  }
 }
 
 /**
@@ -125,7 +127,7 @@ physthing.Collision.prototype.remove = function(body) {
 physthing.Collision.testScene1 = function() {
   var n = 5;
   var m = 5;
-  var mass = 10e3;
+  var mass = 1e3;
   var radius = 10;
   var collisionRadius = 1e9;
   
@@ -140,9 +142,11 @@ physthing.Collision.testScene1 = function() {
       physthing.scene.add(planet.mesh); // put object in scene
       
       // Customize planet
-      var grey = (Math.random() + 0.5) / 1.5;
-      planet.mesh.material.color = new THREE.Color(grey, grey, grey);
-      planet.physics.velocity = new THREE.Vector3(-20*r, 20*c, 0);
+      var grey = (Math.random()*0.25 + 0.75);
+      planet.mesh.material.color = new THREE.Color(grey+(0.1*Math.random()),
+                                                   grey+(0.1*Math.random()),
+                                                   grey+(0.1*Math.random()));
+      //planet.physics.velocity = new THREE.Vector3(-20*r, 20*c, 0);
       planet.mesh.translateX(c*50);
       planet.mesh.translateY(r*50);
     }

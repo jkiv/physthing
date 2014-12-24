@@ -3,7 +3,7 @@ physthing
 
 A little physics-based space game in Javascript and WebGL.
 
-# Dependencies
+### Dependencies
 
 * [three.js](https://threejs.org)
 * [lo-dash](https://lodash.com/)
