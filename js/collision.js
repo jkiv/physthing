@@ -43,8 +43,8 @@ physthing.Collision.prototype.applyBodyForces = function(a, b) {
     b.physics.velocity.sub(ub);
     
     // Replace ua, ub with new velocities va, vb
-    a.physics.velocity.add(va);
-    b.physics.velocity.add(vb);
+    a.physics.velocity.add(va.multiplyScalar(a.physics.collision.damping));
+    b.physics.velocity.add(vb.multiplyScalar(b.physics.collision.damping));
   }
 }
 

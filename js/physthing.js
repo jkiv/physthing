@@ -8,6 +8,7 @@ var physthing = {
   entities: [],
   gravity: null,
   collision: null,
+  input: null,
   clock: null
 };
 
@@ -19,7 +20,7 @@ physthing.go = function() {
   physthing.initalizeScene();
   
   // ADD TEST PLANETS ////
-  physthing.Collision.testScene1();
+  physthing.Gravity.testScene1();
   ////////////////////////
   
   // Start game loop
@@ -50,6 +51,9 @@ physthing.loop = function() {
   _.forEach(physthing.entities, function(entity) {
     entity.updatePosition(timedelta);
   });
+  
+  physthing.camera.zoom = 0.5;
+  physthing.camera.updateProjectionMatrix();
   
   // Render scene
   requestAnimationFrame(physthing.loop); // using built-in browser animation API
@@ -94,10 +98,8 @@ physthing.initalizeScene = function() {
   camera.position.z = 300;
 
   // Add ambient light to scene
-  //var ambientLight = new THREE.AmbientLight( 0x606060 );
-  var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.6 );
+  var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
   directionalLight.position.set(0,0,1);
-  //scene.add(ambientLight);
   scene.add(directionalLight);
   
   // Put render target into page
@@ -116,6 +118,10 @@ physthing.initalizeScene = function() {
   physthing.clock = new THREE.Clock(true);
   physthing.collision = new physthing.Collision();
   physthing.gravity = new physthing.Gravity();
+  physthing.input = new physthing.Input();
+  
+  //
+  physthing.input.init(container[0]);
 }
 
 /**

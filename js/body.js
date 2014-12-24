@@ -36,7 +36,8 @@ physthing.Planet = function ( radius, mass, gravityRadius ) {
     // Collision
     collision: {
       type: 'radius',
-      radius: radius || 100.0
+      radius: radius || 100.0,
+      damping: 0.6
     }
   }
 }
