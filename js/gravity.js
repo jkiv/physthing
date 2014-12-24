@@ -104,6 +104,7 @@ gthing.Gravity.testScene1 = function() {
   var planet = new gthing.Planet(30, 10e3, 1e6);
   gthing.entities.push(planet);  // tell game loop to handle this object
   gthing.gravity.add(planet);    // tell gravity to handle this object
+  gthing.collision.add(planet);  // tell collision to handle this object
   gthing.scene.add(planet.mesh); // put object in scene
   
   // ... make it like a sun
@@ -115,10 +116,11 @@ gthing.Gravity.testScene1 = function() {
   planet.mesh.add(gthing.camera);
   
   // Add planet two -- like a Planet
-  var planet = new gthing.Planet(10, 10, 1000);
+  var planet = new gthing.Planet(10, 1e3, 20);
   planet.mesh.material.color = new THREE.Color(0x0000c0);
   gthing.entities.push(planet);  // tell game loop to handle this object
   gthing.gravity.add(planet);    // tell gravity to handle this object
+  gthing.collision.add(planet);  // tell collision to handle this object
   gthing.scene.add(planet.mesh); // put object in scene
   
   planet.mesh.translateX(-100);
@@ -127,16 +129,17 @@ gthing.Gravity.testScene1 = function() {
   gthing.gravity.add(planet);
   
   // Add planet three -- like a Moon
-  var m3 = 10;
-  var r3 = 100;
-  var planet = new gthing.Planet(4, m3, 1000);
+  var m3 = 1e3;
+  var r3 = 110;
+  var planet = new gthing.Planet(4, m3, 10);
   planet.mesh.material.color = new THREE.Color(0xc0c0c0);
   gthing.entities.push(planet);  // tell game loop to handle this object
   gthing.gravity.add(planet);    // tell gravity to handle this object
+  gthing.collision.add(planet);  // tell collision to handle this object
   gthing.scene.add(planet.mesh); // put object in scene
   
   planet.mesh.translateX(r3);
   //planet.physics.position = planet.mesh.position;
-  planet.physics.velocity = new THREE.Vector3(0,30,0);
+  planet.physics.velocity = new THREE.Vector3(0,-30,0);
   gthing.gravity.add(planet);
 }

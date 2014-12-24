@@ -12,8 +12,10 @@ gthing.Planet = function ( radius, mass, gravityRadius ) {
     ambient: 0x000000,
     fog:     true
   });
-  //var geometry = new THREE.CircleGeometry( radius, 64 );
-  var geometry = new THREE.SphereGeometry( radius, 64, 64 );
+
+  var geometry = new THREE.CircleGeometry( radius, 64 );
+              // new THREE.SphereGeometry( radius, 64, 64 ); 
+
   this.mesh = new THREE.Mesh( geometry, material );
   
   // Physics
@@ -44,11 +46,9 @@ gthing.Planet = function ( radius, mass, gravityRadius ) {
  */
 gthing.Planet.prototype.updatePosition = function(timedelta) {
   // Accumulate forces
-  var netForce = new THREE.Vector3();
-  
-  netForce = _.reduce(this.physics.forces, function(net, force) {
+  var netForce = _.reduce(this.physics.forces, function(net, force) {
     return net.add(force);
-  }, netForce);
+  }, new THREE.Vector3());
   
   // Clear applied forces
   this.physics.forces = [];

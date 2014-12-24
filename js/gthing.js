@@ -7,6 +7,7 @@ var gthing = {
   renderer: null,
   entities: [],
   gravity: null,
+  collision: null,
   clock: null
 };
 
@@ -16,8 +17,7 @@ gthing.go = function() {
   gthing.initalizeScene();
   
   // ADD TEST PLANETS ////
-  gthing.gravity = new gthing.Gravity();
-  gthing.Gravity.testScene1();
+  gthing.Collision.testScene1();
   ////////////////////////
   
   // Start game loop
@@ -28,15 +28,13 @@ gthing.go = function() {
 gthing.loop = function() {
   // Get time delta since last frame
   var timedelta = gthing.clock.getDelta();
+  timedelta = Math.min(1/30., timedelta); // clamp to 30 fps (for physics)
   
-  // Read input -- dispatch events
-  // TODO
-  
-  // Perform gravity
+  // Perform gravity interactions and apply gravitational forces
   gthing.gravity.updateForces();
   
-  // Perform collisions and constraints
-  // TODO collision system
+  // Perform collisions and apply constraints
+  gthing.collision.applyConstraints();
   
   // Accumulate forces and update positions
   _.forEach(gthing.entities, function(entity) {
@@ -65,8 +63,6 @@ gthing.initalizeScene = function() {
     near: 0.1,
     far: 10000
   };
-
-  console.log(renderProperties);
   
   var camera =
     new THREE.OrthographicCamera(
@@ -106,6 +102,8 @@ gthing.initalizeScene = function() {
   gthing.renderer = renderer;
   gthing.camera = camera;
   gthing.clock = new THREE.Clock(true);
+  gthing.collision = new gthing.Collision();
+  gthing.gravity = new gthing.Gravity();
 }
 
 // Render the scene using the current renderer, scene, and camera
