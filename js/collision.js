@@ -1,11 +1,11 @@
-gthing.Collision = function() {
+physthing.Collision = function() {
   this.bodies = [];
 }
 
 /**
  * Compute and add collision forces for two interacting bodies [a] and [b].
  */
-gthing.Collision.prototype.applyBodyForces = function(a, b) {
+physthing.Collision.prototype.applyBodyForces = function(a, b) {
   // As long as two objects are colliding, a force should exist
   // to prevent the velocity from translating the objects over
   // one another any further. To do this,
@@ -45,7 +45,7 @@ gthing.Collision.prototype.applyBodyForces = function(a, b) {
 /**
  * Determine whether two objects are within each other's interacting range.
  */
-gthing.Collision.prototype.inInteractionRange = function(a, b) {
+physthing.Collision.prototype.inInteractionRange = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.collision.radius
                         + b.physics.collision.radius;
@@ -54,7 +54,7 @@ gthing.Collision.prototype.inInteractionRange = function(a, b) {
 }
 
 
-gthing.Collision.prototype.findInteractingBodies = function(bodies){
+physthing.Collision.prototype.findInteractingBodies = function(bodies){
   var visitedFrom = [];
   var pairs = [];
   var that = this;
@@ -94,7 +94,7 @@ gthing.Collision.prototype.findInteractingBodies = function(bodies){
 /**
  *
  */
-gthing.Collision.prototype.applyConstraints = function() {
+physthing.Collision.prototype.applyConstraints = function() {
   var that = this;
   _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
     that.applyBodyForces(pair[0], pair[1]);
@@ -104,21 +104,21 @@ gthing.Collision.prototype.applyConstraints = function() {
 /**
  * Put [body] under the guise of this Collision object.
  */
-gthing.Collision.prototype.add = function(body) {
+physthing.Collision.prototype.add = function(body) {
   this.bodies = _.union(this.bodies, [body]);
 }
 
 /**
  * Remove [body] from the guise of this Collision object.
  */
-gthing.Collision.prototype.remove = function(body) {
+physthing.Collision.prototype.remove = function(body) {
   this.bodies = _.difference(this.bodies, [body]);
 }
 
 /**
  * Collision test scene (1).
  */
-gthing.Collision.testScene1 = function() {
+physthing.Collision.testScene1 = function() {
   // Add a grid of planets with gravity and collision
   
   var n = 5;
@@ -126,15 +126,15 @@ gthing.Collision.testScene1 = function() {
   
   for(var r = -n/2; r < n/2; r++) {
     for(var c = -m/2; c < m/2; c++) {
-      var planet = new gthing.Planet(10, 1e3, 1e9);
+      var planet = new physthing.Planet(10, 1e3, 1e9);
       var grey = (Math.random() + 0.5) / 1.5;
       planet.mesh.material.color = new THREE.Color(grey,
                                                    grey,
                                                    grey);
-      gthing.entities.push(planet);  // tell game loop to handle this object
-      gthing.gravity.add(planet);    // tell gravity to handle this object
-      gthing.collision.add(planet);  // tell collision to handle this object
-      gthing.scene.add(planet.mesh); // put object in scene
+      physthing.entities.push(planet);  // tell game loop to handle this object
+      physthing.gravity.add(planet);    // tell gravity to handle this object
+      physthing.collision.add(planet);  // tell collision to handle this object
+      physthing.scene.add(planet.mesh); // put object in scene
       
       planet.mesh.translateX(c*50);
       planet.mesh.translateY(r*50);

@@ -1,11 +1,11 @@
-gthing.Body = function ( radius, mass, gravity ) {
+physthing.Body = function ( radius, mass, gravity ) {
   // TODO base body, wrapping threejs functionality, adding gravity and collision.
 }
 
 /**
  * A prototype Planet.
  */
-gthing.Planet = function ( radius, mass, gravityRadius ) { 
+physthing.Planet = function ( radius, mass, gravityRadius ) { 
   // Three.js representation
   var material = new THREE.MeshLambertMaterial({
     color:   0xffffff,
@@ -44,7 +44,7 @@ gthing.Planet = function ( radius, mass, gravityRadius ) {
 /**
  * Accumulate applied forces and update position.
  */
-gthing.Planet.prototype.updatePosition = function(timedelta) {
+physthing.Planet.prototype.updatePosition = function(timedelta) {
   // Accumulate forces
   var netForce = _.reduce(this.physics.forces, function(net, force) {
     return net.add(force);

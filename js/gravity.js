@@ -1,7 +1,7 @@
 /**
  * Handles gravity and body interactions.
  */
-gthing.Gravity = function(G) {
+physthing.Gravity = function(G) {
   this.G = G || 10.0;
   this.bodies = [];
 }
@@ -9,7 +9,7 @@ gthing.Gravity = function(G) {
 /**
  * Compute and add gravitational forces for two interacting bodies [a] and [b].
  */
-gthing.Gravity.prototype.applyBodyForces = function(a, b) {
+physthing.Gravity.prototype.applyBodyForces = function(a, b) {
     var abVector = new THREE.Vector3();
     abVector.subVectors(b.physics.position, a.physics.position); // from [a] to [b]
     var rSq = abVector.lengthSq();
@@ -24,7 +24,7 @@ gthing.Gravity.prototype.applyBodyForces = function(a, b) {
 /**
  * Determine whether two objects are within each other's interacting range.
  */
-gthing.Gravity.prototype.inInteractionRange = function(a, b) {
+physthing.Gravity.prototype.inInteractionRange = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.gravity.interactionRadius
                         + b.physics.gravity.interactionRadius;
@@ -32,7 +32,7 @@ gthing.Gravity.prototype.inInteractionRange = function(a, b) {
   return distance <= maximumDistance;
 }
 
-gthing.Gravity.prototype.findInteractingBodies = function(bodies){
+physthing.Gravity.prototype.findInteractingBodies = function(bodies){
   var visitedFrom = [];
   var pairs = [];
   var that = this;
@@ -72,10 +72,10 @@ gthing.Gravity.prototype.findInteractingBodies = function(bodies){
 /**
  * Finds interacting bodies in [bodies] and applies gravitational force
  * to each interacting pair.
- * \see gthing.Gravity.findInteractingBodies
- * \see gthing.Gravity.applyBodyForces
+ * \see physthing.Gravity.findInteractingBodies
+ * \see physthing.Gravity.applyBodyForces
  */
-gthing.Gravity.prototype.updateForces = function() {
+physthing.Gravity.prototype.updateForces = function() {
   var that = this;
   _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
     that.applyBodyForces(pair[0], pair[1]);
@@ -85,61 +85,61 @@ gthing.Gravity.prototype.updateForces = function() {
 /**
  * Put [body] under the guise of this Gravity object.
  */
-gthing.Gravity.prototype.add = function(body) {
+physthing.Gravity.prototype.add = function(body) {
   this.bodies = _.union(this.bodies, [body]);
 }
 
 /**
  * Remove [body] from the guise of this Gravity object.
  */
-gthing.Gravity.prototype.remove = function(body) {
+physthing.Gravity.prototype.remove = function(body) {
   this.bodies = _.difference(this.bodies, [body]);
 }
 
 /**
  * Gravity test scene (1).
  */
-gthing.Gravity.testScene1 = function() {
+physthing.Gravity.testScene1 = function() {
   // Add planet one -- like a Sun
-  var planet = new gthing.Planet(30, 10e3, 1e6);
-  gthing.entities.push(planet);  // tell game loop to handle this object
-  gthing.gravity.add(planet);    // tell gravity to handle this object
-  gthing.collision.add(planet);  // tell collision to handle this object
-  gthing.scene.add(planet.mesh); // put object in scene
+  var planet = new physthing.Planet(30, 10e3, 1e6);
+  physthing.entities.push(planet);  // tell game loop to handle this object
+  physthing.gravity.add(planet);    // tell gravity to handle this object
+  physthing.collision.add(planet);  // tell collision to handle this object
+  physthing.scene.add(planet.mesh); // put object in scene
   
   // ... make it like a sun
   planet.mesh.material.color = new THREE.Color(0xffff00);
   planet.mesh.material.emissive = new THREE.Color(0x606000);
   planet.mesh.add(new THREE.PointLight(0xffffff, 0.5, 1e6));
   
-  gthing.scene.remove(gthing.camera);
-  planet.mesh.add(gthing.camera);
+  physthing.scene.remove(physthing.camera);
+  planet.mesh.add(physthing.camera);
   
   // Add planet two -- like a Planet
-  var planet = new gthing.Planet(10, 1e3, 20);
+  var planet = new physthing.Planet(10, 1e3, 20);
   planet.mesh.material.color = new THREE.Color(0x0000c0);
-  gthing.entities.push(planet);  // tell game loop to handle this object
-  gthing.gravity.add(planet);    // tell gravity to handle this object
-  gthing.collision.add(planet);  // tell collision to handle this object
-  gthing.scene.add(planet.mesh); // put object in scene
+  physthing.entities.push(planet);  // tell game loop to handle this object
+  physthing.gravity.add(planet);    // tell gravity to handle this object
+  physthing.collision.add(planet);  // tell collision to handle this object
+  physthing.scene.add(planet.mesh); // put object in scene
   
   planet.mesh.translateX(-100);
   //planet.physics.position = planet.mesh.position;
   planet.physics.velocity = new THREE.Vector3(0,-30,0);
-  gthing.gravity.add(planet);
+  physthing.gravity.add(planet);
   
   // Add planet three -- like a Moon
   var m3 = 1e3;
   var r3 = 110;
-  var planet = new gthing.Planet(4, m3, 10);
+  var planet = new physthing.Planet(4, m3, 10);
   planet.mesh.material.color = new THREE.Color(0xc0c0c0);
-  gthing.entities.push(planet);  // tell game loop to handle this object
-  gthing.gravity.add(planet);    // tell gravity to handle this object
-  gthing.collision.add(planet);  // tell collision to handle this object
-  gthing.scene.add(planet.mesh); // put object in scene
+  physthing.entities.push(planet);  // tell game loop to handle this object
+  physthing.gravity.add(planet);    // tell gravity to handle this object
+  physthing.collision.add(planet);  // tell collision to handle this object
+  physthing.scene.add(planet.mesh); // put object in scene
   
   planet.mesh.translateX(r3);
   //planet.physics.position = planet.mesh.position;
   planet.physics.velocity = new THREE.Vector3(0,-30,0);
-  gthing.gravity.add(planet);
+  physthing.gravity.add(planet);
 }
