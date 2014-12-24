@@ -1,6 +1,6 @@
-// Requires: lodash.js, three.js, jquery.js
-
-// physthing Namespace
+/**
+ * phything Namespace
+ */
 var physthing = {
   scene: null,
   camera: null,
@@ -11,7 +11,9 @@ var physthing = {
   clock: null
 };
 
-// Main entry point
+/**
+ * Main entry point.
+ */
 physthing.go = function() {
   // Initialize scene components
   physthing.initalizeScene();
@@ -24,7 +26,15 @@ physthing.go = function() {
   physthing.loop();
 }
 
-// Render loop
+/**
+ * Render loop.
+ * 
+ * Loop is broken down as such:
+ *   1. Apply forces
+ *   2. Apply constraints
+ *   3. Accumulate forces and update velocity and position
+ *   4. Render frame.
+ */
 physthing.loop = function() {
   // Get time delta since last frame
   var timedelta = physthing.clock.getDelta();
@@ -46,7 +56,9 @@ physthing.loop = function() {
   physthing.renderScene();
 }
 
-// Load scene into physthing.threejs.scene
+/**
+ * Initializes the base scene, with no bodies.
+ */
 physthing.initalizeScene = function() {
   // Grab target DOM object
   var container = $("#container");
@@ -106,7 +118,9 @@ physthing.initalizeScene = function() {
   physthing.gravity = new physthing.Gravity();
 }
 
-// Render the scene using the current renderer, scene, and camera
+/**
+ * Renders the scene using the current renderer, scene, and camera.
+ */
 physthing.renderScene = function() {
   physthing.renderer.render(physthing.scene, physthing.camera);
 }
