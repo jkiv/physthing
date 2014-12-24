@@ -75,8 +75,10 @@ physthing.Gravity.prototype.findInteractingBodies = function(bodies){
  * \see physthing.Gravity.findInteractingBodies
  * \see physthing.Gravity.applyBodyForces
  */
-physthing.Gravity.prototype.updateForces = function() {
+physthing.Gravity.prototype.update = function(timedelta) {
   var that = this;
+  
+  // Apply body forces between interacting objects
   _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
     that.applyBodyForces(pair[0], pair[1]);
   });

@@ -4,8 +4,6 @@
 physthing.Input = function(dom) {
   this.dom = dom;
   this.callbacks = {};
-  this.keyState = {};
-  this.mouseState = {};
 
   // Attach this to DOM events
   this.init();
@@ -20,24 +18,24 @@ physthing.Input.prototype.init = function() {
   
   // Register DOM events
   // ... mouse events
-  this.dom.addEventListener('mousemove', function(e) {
+  document.addEventListener('mousemove', function(e) {
     that.dispatchMouseMove(e);
   });
   
-  this.dom.addEventListener('mousewheel', function(e) {
+  document.addEventListener('mousewheel', function(e) {
     that.dispatchMouseScroll(e);
   }, false); // Chrome
   
-  this.dom.addEventListener('DOMMouseScroll', function(e) {
+  document.addEventListener('DOMMouseScroll', function(e) {
     that.dispatchMouseScroll(e);
   }, false); // Firefox
   
   // ... keyboard events
-  this.dom.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', function(e) {
     that.dispatchKeyDown(e);
   });
   
-  this.dom.addEventListener('keyup', function(e) {
+  document.addEventListener('keyup', function(e) {
     that.dispatchKeyUp(e);
   });
   
@@ -95,8 +93,7 @@ physthing.Input.prototype.dispatchMouseScroll = function(e) {
  * Dispatcher for key down event.
  */
 physthing.Input.prototype.dispatchKeyDown = function(e) {
-  if (keyState[e.id] === 0) {
-    keystate[e.id] = 1;
+  if (e.repeat === false) {
     this.dispatch('key.down', e);
   }
 }
@@ -105,10 +102,7 @@ physthing.Input.prototype.dispatchKeyDown = function(e) {
  * Dispatcher for key up event.
  */
 physthing.Input.prototype.dispatchKeyUp = function(e) {
-  if (keyState[e.id] === 1) {
-    keystate[e.id] = 0;
-    this.dispatch('key.up', e);
-  }
+  this.dispatch('key.up', e);
 }
 
 /**
