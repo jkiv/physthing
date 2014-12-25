@@ -122,13 +122,21 @@ physthing.Collision.prototype.remove = function(body) {
   this.bodies = _.difference(this.bodies, [body]);
 }
 
+physthing.Collision.getOptions = function(radius, damping) {
+  return {
+    type: 'radius',
+    radius: radius || 0.0,
+    damping: damping || 0.6
+  };
+}
+
 /**
  * Collision test scene (1).
  */
 physthing.Collision.testScene1 = function() {
   var n = 5;
   var m = 5;
-  var mass = 1e3;
+  var mass = 10;
   var radius = 10;
   var collisionRadius = 1e9;
   
