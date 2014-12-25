@@ -1,3 +1,6 @@
+// TODO keep objects <0,0,0> locally to allow for rotations around center of mass.
+//      -- wrap in invisible object -> translations, rotate child?
+
 /**
  * Handles gravity and body interactions.
  */
