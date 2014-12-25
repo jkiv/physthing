@@ -6,46 +6,39 @@ physthing.Collision = function() {
  * Compute and add collision forces for two interacting bodies [a] and [b].
  */
 physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
-  var abVector = b.physics.position.clone().sub(a.physics.position);
+  // TODO avoid exposing collision details
+  
+  // 1. Perform elastic collision along collision normal
   
   // Get collision normal(s)
+  var abVector = b.physics.position.clone().sub(a.physics.position);
   var normA = abVector.normalize();   // a->b
   var normB = normA.clone().negate(); // b->a
   
-  // Cancel out acceleration along normal to avoid further penetration //
-  var netForceA = _.reduce(a.physics.forces, function(net, force) {
-    return net.add(force);
-  }, new THREE.Vector3());
-  
-  var netForceB = _.reduce(b.physics.forces, function(net, force) {
-    return net.add(force);
-  }, new THREE.Vector3());
-  
-  netForceA.projectOnVector(normA).negate();
-  netForceB.projectOnVector(normB).negate();
-  
-  a.physics.forces.push(netForceA);
-  b.physics.forces.push(netForceB);
-  
-  // Perform elastic collision along collision normal //
   var ua = a.physics.velocity.clone().projectOnVector(normA);
   var ub = b.physics.velocity.clone().projectOnVector(normB);
   var ma = a.physics.mass;
   var mb = b.physics.mass;
   var M = ma + mb;
   
-  if (M !== 0) {
-    var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
-    var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
-    
-    // Remove ua, ub components
-    a.physics.velocity.sub(ua);
-    b.physics.velocity.sub(ub);
-    
-    // Replace ua, ub with new velocities va, vb
-    a.physics.velocity.add(va.multiplyScalar(a.physics.collision.damping));
-    b.physics.velocity.add(vb.multiplyScalar(b.physics.collision.damping));
-  }
+  if (M === 0) { return; } // avoid division by zero
+  
+  var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
+  var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
+  
+  // Replace ua, ub with new velocities va, vb
+  a.physics.velocity.sub(ua);
+  b.physics.velocity.sub(ub);
+  
+  a.physics.velocity.add(va.multiplyScalar(a.physics.collision.damping));
+  b.physics.velocity.add(vb.multiplyScalar(b.physics.collision.damping));
+  
+  // 2. Remove overlap along collision normal (proportional to mass)
+  var overlap = (a.physics.collision.radius + b.physics.collision.radius)
+                   - abVector.length();
+                   
+  a.physics.position.add(normB.clone().multiplyScalar(overlap * mb/M));
+  b.physics.position.add(normA.clone().multiplyScalar(overlap * ma/M));
 }
 
 /**

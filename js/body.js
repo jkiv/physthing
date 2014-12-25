@@ -13,12 +13,14 @@ physthing.Body = function ( mass ) {
     mass: 1.,
     inverseMass: 1.,
     forces: [],
+    moments: [],
     collision: null, // { type, radius, damping }
     gravity: null    // { interactionRadius }
   };
   
   // Update properties via parameters
   this.setMass(mass);
+  //physthing.Body.prototype.setMass.call(this, mass);
 }
 
 physthing.Body.prototype.setMesh = function( mesh ) {
@@ -52,6 +54,10 @@ physthing.Body.prototype.setMass = function( mass ) {
  * Accumulate applied forces and update position.
  */
 physthing.Body.prototype.update = function(timedelta) {
+  // TODO forces and whatnot are in global space, but we're altering
+  //      local positions/rotations.
+  //      Convert things to world and back to local?
+
   // Apply constraints
   // TODO constraint callbacks?
   // var that = this;
@@ -64,6 +70,11 @@ physthing.Body.prototype.update = function(timedelta) {
     return net.add(force);
   }, new THREE.Vector3());
   
+  // Accumulate forces
+  var netMoment = _.reduce(this.physics.moments, function(net, moment) {
+    return net.add(moment);
+  }, new THREE.Vector3());
+  
   // Update velocity
   var velocityDelta = netForce.clone().multiplyScalar(this.physics.inverseMass * timedelta);
   this.physics.velocity.add(velocityDelta);
@@ -71,11 +82,20 @@ physthing.Body.prototype.update = function(timedelta) {
   // Update position
   var positionDelta = this.physics.velocity.clone().multiplyScalar(timedelta);
   this.mesh.translateOnAxis(positionDelta.clone().normalize(), positionDelta.length());
-
-  // TODO rotation (independent of translation)
+  
+  // Update rotation velocity
+  // TODO moments of inertia
+  var angularVelocityDelta = netMoment.clone().multiplyScalar(timedelta);
+  this.physics.angularVelocity.add(angularVelocityDelta);
+  
+  // Update rotation position
+  // TODO rotate around center of mass, rather than 
+  var angleDelta = this.physics.angularVelocity.clone().multiplyScalar(timedelta);
+  this.mesh.rotateOnAxis(angleDelta.clone().normalize(), angleDelta.length());
   
   // Clear force and constraint accumulators
   this.physics.forces = [];
+  this.physics.moments = [];
   //this.physics.constraints = [];
 }
 
@@ -154,11 +174,16 @@ physthing.Ship = function() {
   this.setGravity(physthing.Gravity.getOptions(interactionRadius))
   
   // Set collision
-  this.setCollision(physthing.Collision.getOptions(radius));
+  // TODO different collision models
+  this.setCollision(physthing.Collision.getOptions(10));
   
   // Ship state
-  this.thrustOn = false;
+  this.isThrustOn = false;
+  this.isRotatingLeft = false;
+  this.isRotatingRight = false;
 }
+
+physthing.Ship.prototype = Object.create( physthing.Body.prototype );
 
 /**
  * Conveniently create a Ship-like mesh.
@@ -175,7 +200,18 @@ physthing.Ship.prototype.createMesh = function() {
 
   var geometry = new THREE.BoxGeometry( 10, 10, 1 ); 
 
-  return new THREE.Mesh( geometry, material );
+  var mesh = new THREE.Mesh( geometry, material );
+  
+  // DEBUG arrow
+  mesh.add(new THREE.ArrowHelper(
+    new THREE.Vector3(1,0,0), // direction
+    new THREE.Vector3(0,0,0), // origin (local?)
+    15, // length
+    0x00FF00 // color?
+  ));
+  //
+  
+  return mesh;
 }
 
 physthing.Ship.prototype.update = function(timedelta) {
@@ -189,19 +225,112 @@ physthing.Ship.prototype.update = function(timedelta) {
   physthing.Body.prototype.update.call(this, timedelta);
 }
 
+/**
+ * Apply different forces on Ship given the Ship's state.
+ */
 physthing.Ship.prototype.applyThrust = function() {
+  var thrustMag = 100;
+  var turnThrustMag = 1;
+
   // Apply thrust force if ship is thrusting
   if (this.isThrustOn === true) {
-    var thrustMag = 10;
-    var thrustForce = new Vector3(thrustMag,0,0);
-    this.forces.push(thrustForce);
+    var thrustForce = new THREE.Vector3(thrustMag,0,0);
+    this.physics.forces.push(thrustForce);
+  }
+  
+  if (this.isRotatingLeft === true) {
+    var thrustMoment = new THREE.Vector3(0,0,turnThrustMag);
+    this.physics.moments.push(thrustMoment);
+  }
+  
+  if (this.isRotatingRight === true) {
+    var thrustMoment = new THREE.Vector3(0,0,-turnThrustMag);
+    this.physics.moments.push(thrustMoment);
   }
 }
 
-physthing.startThrust = function() {
+physthing.Ship.prototype.startThrust = function() {
   this.isThrustOn = true;
 }
 
-physthing.stopThrust = function() {
+physthing.Ship.prototype.stopThrust = function() {
   this.isThrustOn = false;
+}
+
+physthing.Ship.prototype.startRotateLeft = function() {
+  this.isRotatingLeft = true;
+}
+
+physthing.Ship.prototype.stopRotateLeft = function() {
+  this.isRotatingLeft = false;
+}
+
+physthing.Ship.prototype.startRotateRight = function() {
+  this.isRotatingRight = true;
+}
+
+physthing.Ship.prototype.stopRotateRight = function() {
+  this.isRotatingRight = false;
+}
+
+physthing.Ship.prototype.bindControls = function(input) {
+  // TODO better scheme later...
+  var that = this;
+  
+  input.registerListener('key.down', function(e) {
+    switch(e.keyCode) {
+      case 65: // A
+        that.startRotateLeft();
+        break;
+      case 68: // D
+        that.startRotateRight();
+        break;
+      case 87: // W
+        that.startThrust();
+        break;
+      default:
+      
+    }
+  });
+  
+  input.registerListener('key.up', function(e) {
+    switch(e.keyCode) {
+      case 65: // A
+        that.stopRotateLeft();
+        break;
+      case 68: // D
+        that.stopRotateRight();
+        break;
+      case 87: // W
+        that.stopThrust();
+        break;
+      default:
+      
+    }
+  });
+}
+
+/**
+ * Gravity test scene (1).
+ */
+physthing.Ship.testScene1 = function() {
+  // Add a planet
+  var planet = new physthing.Planet(10, 100, 1e6);
+  physthing.entities.push(planet);  // tell game loop to handle this object
+  physthing.gravity.add(planet);    // tell gravity to handle this object
+  physthing.collision.add(planet);  // tell collision to handle this object
+  physthing.scene.add(planet.mesh); // put object in scene
+  planet.mesh.translateX(-200);
+
+  // Add a ship
+  var ship = new physthing.Ship();
+  physthing.entities.push(ship);    // tell game loop to handle this object
+  physthing.gravity.add(ship);    // tell gravity to handle this object
+  physthing.collision.add(ship);  // tell collision to handle this object
+  physthing.scene.add(ship.mesh); // put object in scene
+  //ship.mesh.translateX(-200);
+  ship.bindControls(physthing.input);
+  
+  //physthing.scene.remove(physthing.camera);
+  //ship.mesh.add(physthing.camera);
 }
