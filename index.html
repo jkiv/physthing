@@ -25,9 +25,13 @@
     <script src="js/collision.js"></script>
     <script src="js/input.js"></script>
     <script type="text/javascript">
-      $(function() {
-        // TODO provide target, size, etc.
-        physthing.go();
+      $(function() {        
+        // Grab target DOM object
+        var container = document.createElement('div');
+        document.body.appendChild(container);
+        physthing.go(container);
+        
+        // TODO add physthing functionality to clean up state, and start afresh, from command line.
       });
     </script>
   </body>

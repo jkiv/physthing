@@ -1,58 +1,68 @@
-physthing.Body = function ( radius, mass, gravity ) {
-  // TODO base body, wrapping threejs functionality, adding gravity and collision.
+// Body (base) ////////////////////////////////////////////////////////
+
+physthing.Body = function ( mass ) {
+  // Three.js visual representation
+  this.mesh = null;
+  
+  // Body physics
+  this.physics = {
+    position: new THREE.Vector3(),
+    velocity: new THREE.Vector3(),
+    angle: new THREE.Vector3(),
+    angularVelocity: new THREE.Vector3(),
+    mass: 1.,
+    inverseMass: 1.,
+    forces: [],
+    collision: null, // { type, radius, damping }
+    gravity: null    // { interactionRadius }
+  };
+  
+  // Update properties via parameters
+  this.setMass(mass);
+}
+
+physthing.Body.prototype.setMesh = function( mesh ) {
+  mesh.position = this.physics.position.clone(); // maintain local position
+  this.physics.position = mesh.position; // keep reference of mesh position
+  this.mesh = mesh;
 }
 
 /**
- * A prototype Planet.
+ * Get gravity options for this body.
+ * \see physthing.Gravity.getOptions
  */
-physthing.Planet = function ( radius, mass, gravityRadius ) { 
-  // Three.js representation
-  var material = new THREE.MeshLambertMaterial({
-    color:   0xffffff,
-    ambient: 0x000000,
-    fog:     true
-  });
+physthing.Body.prototype.setGravity = function( gravity ) {
+  this.physics.gravity = gravity; 
+}
 
-  //var geometry = new THREE.CircleGeometry( radius, 64 );
-  var geometry = new THREE.SphereGeometry( radius, 32, 32 ); 
+/**
+ * Get collision options for this body.
+ * \see physthing.Collision.getOptions
+ */
+physthing.Body.prototype.setCollision = function( collision ) {
+  this.physics.collision = collision;
+}
 
-  this.mesh = new THREE.Mesh( geometry, material );
-  
-  // Physics
-  // TODO right now we just put everything in a blob.
-  this.physics = {
-    position: this.mesh.position, // reference position in mesh
-    velocity: new THREE.Vector3(),
-    angle: new THREE.Vector3(),
-    angularVelocity: -0.2,
-    angularAxis: new THREE.Vector3(0,0,1),
-    mass: mass || 1.0,
-    inverseMass: ( 1.0 / mass ) || 1.0,
-    forces: [],
-    // Gravity
-    gravity: {
-      interactionRadius: gravityRadius || 0.0
-    },
-    // Collision
-    collision: {
-      type: 'radius',
-      radius: radius || 100.0,
-      damping: 0.6
-    }
-  }
+physthing.Body.prototype.setMass = function( mass ) {
+  this.physics.mass = mass || this.physics.mass;
+  this.physics.inverseMass = 1/mass || this.physics.inverseMass;
 }
 
 /**
  * Accumulate applied forces and update position.
  */
-physthing.Planet.prototype.update = function(timedelta) {
+physthing.Body.prototype.update = function(timedelta) {
+  // Apply constraints
+  // TODO constraint callbacks?
+  // var that = this;
+  //_.forEach(this.physics.constraints, function(constraint) {
+  //  constraint(that);
+  //});
+
   // Accumulate forces
   var netForce = _.reduce(this.physics.forces, function(net, force) {
     return net.add(force);
   }, new THREE.Vector3());
-  
-  // Clear applied forces
-  this.physics.forces = [];
   
   // Update velocity
   var velocityDelta = netForce.clone().multiplyScalar(this.physics.inverseMass * timedelta);
@@ -60,64 +70,138 @@ physthing.Planet.prototype.update = function(timedelta) {
   
   // Update position
   var positionDelta = this.physics.velocity.clone().multiplyScalar(timedelta);
-  
-  // Update rotation
-  var rotationDelta = this.physics.angularVelocity * timedelta;
-  
-  // Update mesh
   this.mesh.translateOnAxis(positionDelta.clone().normalize(), positionDelta.length());
-  //this.mesh.rotateOnAxis(this.physics.angularAxis, rotationDelta);
-  // FIXME, translation is based on orientation, affected by rotation.
+
+  // TODO rotation (independent of translation)
   
-  // Update physics
-  //this.physics.position = this.mesh.position; // same vector reference
-  this.physics.angle += this.physics.rotationDelta;
+  // Clear force and constraint accumulators
+  this.physics.forces = [];
+  //this.physics.constraints = [];
 }
 
-////////////////////
+// Planet /////////////////////////////////////////////////////////////
 
-physthing.Ship = function( fuel ) {
-  // Three.js representation
+/**
+ * Conveniently create a Planet (Body).
+ */
+physthing.Planet = function ( mass, radius, interactionRadius ) { 
+  physthing.Body.call( this, mass );
+  
+  // Create a mesh
+  this.setMesh(this.createMesh(radius));
+  
+  // Set gravity
+  this.setGravity(physthing.Gravity.getOptions(interactionRadius))
+  
+  // Set collision
+  this.setCollision(physthing.Collision.getOptions(radius));
+  
+  // Remember the Planet's radius
+  this.radius = radius;
+}
+
+physthing.Planet.prototype = Object.create( physthing.Body.prototype );
+
+/**
+ * Conveniently create a Planet-like mesh.
+ */
+physthing.Planet.prototype.createMesh = function( radius, options ) {
+  // TODO use options to change features
+  
+  // Create material, geometry, and mesh
   var material = new THREE.MeshLambertMaterial({
     color:   0xffffff,
     ambient: 0x000000,
     fog:     true
   });
-  var geometry = new THREE.BoxGeometry(1,1,1); 
-  this.mesh = new THREE.Mesh( geometry, material );
+
+  var geometry = new THREE.CircleGeometry( radius, 64 );
+  //var geometry = new THREE.SphereGeometry( radius, 32, 32 ); 
+
+  return new THREE.Mesh( geometry, material );
+}
+
+physthing.Planet.prototype.setRadius = function( radius ) {
+  // TODO update a bunch of unrelated things :(
+}
+
+/**
+ * Accumulate applied forces and update position.
+ */
+physthing.Planet.prototype.update = function(timedelta) {
+  // Update mesh?
+  // Do other things based on state?
   
-  ///
+  // Update body physics
+  physthing.Body.prototype.update.call(this, timedelta);
+}
+
+// Ship ///////////////////////////////////////////////////////////////
+
+/**
+ * Conveniently create a Ship (Body).
+ */
+physthing.Ship = function() {
   var mass = 5;
-  var radius = 1e9;
+  var interactionRadius = 1e3;
   
-  // Physics
-  // TODO right now we just put everything in a blob.
-  this.physics = {
-    position: this.mesh.position, // reference position in mesh
-    velocity: new THREE.Vector3(),
-    angle: new THREE.Vector3(),
-    angularVelocity: 0,
-    angularAxis: new THREE.Vector3(0,0,1),
-    mass: mass || 1.0,
-    inverseMass: ( 1.0 / mass ) || 1.0,
-    forces: [],
-    // Gravity
-    gravity: {
-      interactionRadius: gravityRadius || 0.0
-    },
-    // Collision
-    collision: {
-      type: 'radius',
-      radius: radius || 100.0,
-      damping: 0.6
-    }
-  }
+  physthing.Body.call(this, mass);
   
-  // Other ship state
+  // Create a mesh
+  this.setMesh(this.createMesh());
+  
+  // Set gravity
+  this.setGravity(physthing.Gravity.getOptions(interactionRadius))
+  
+  // Set collision
+  this.setCollision(physthing.Collision.getOptions(radius));
+  
+  // Ship state
   this.thrustOn = false;
 }
 
+/**
+ * Conveniently create a Ship-like mesh.
+ */
+physthing.Ship.prototype.createMesh = function() {
+  // TODO use options to change features
+
+  // Create material, geometry, and mesh
+  var material = new THREE.MeshLambertMaterial({
+    color:   0xffffff,
+    ambient: 0x000000,
+    fog:     true
+  });
+
+  var geometry = new THREE.BoxGeometry( 10, 10, 1 ); 
+
+  return new THREE.Mesh( geometry, material );
+}
+
 physthing.Ship.prototype.update = function(timedelta) {
-  // TODO add thrust force if thrusting  
-  // TODO call update on prototype (update of position)
+  // Update mesh?
+  // TODO emit some particles?
+  
+  // Do other things based on state?
+  this.applyThrust();
+  
+  // Update body physics
+  physthing.Body.prototype.update.call(this, timedelta);
+}
+
+physthing.Ship.prototype.applyThrust = function() {
+  // Apply thrust force if ship is thrusting
+  if (this.isThrustOn === true) {
+    var thrustMag = 10;
+    var thrustForce = new Vector3(thrustMag,0,0);
+    this.forces.push(thrustForce);
+  }
+}
+
+physthing.startThrust = function() {
+  this.isThrustOn = true;
+}
+
+physthing.stopThrust = function() {
+  this.isThrustOn = false;
 }

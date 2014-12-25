@@ -15,9 +15,9 @@ var physthing = {
 /**
  * Main entry point.
  */
-physthing.go = function() {
+physthing.go = function(container) {
   // Initialize scene components
-  physthing.initalizeScene();
+  physthing.initalizeScene(container);
   
   physthing.Gravity.testScene1();   // Gravity test scene (1)
   //physthing.Collision.testScene1(); // Collision test scene (1)
@@ -61,10 +61,7 @@ physthing.loop = function() {
 /**
  * Initializes the base scene, with no bodies.
  */
-physthing.initalizeScene = function() {
-  // Grab target DOM object
-  var container = document.createElement('div');
-	document.body.appendChild(container);
+physthing.initalizeScene = function(container) {
 
   // Create render target
   var renderer = new THREE.WebGLRenderer({
