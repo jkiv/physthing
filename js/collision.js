@@ -122,7 +122,7 @@ physthing.Collision.getOptions = function(radius, damping) {
   return {
     type: 'radius',
     radius: radius || 0.0,
-    damping: damping || 0.1
+    damping: damping || 0.6
   };
 }
 

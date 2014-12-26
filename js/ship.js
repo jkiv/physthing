@@ -25,7 +25,7 @@ physthing.Ship = function() {
   this.control = {
     thrust: {
       forward: false,
-      magnitude: 1e3
+      magnitude: 10e3
     },
     rotation: {
       cw: false,
@@ -46,8 +46,7 @@ physthing.Ship.prototype.createMesh = function() {
   // Create material, geometry, and mesh
   var material = new THREE.MeshLambertMaterial({
     color:   0xff00ff,
-    ambient: 0x0c000c,
-    //emissive: 0xff00ff,
+    ambient: 0xff00ff,
     fog:     true
   });
 
@@ -175,7 +174,7 @@ physthing.Ship.prototype.bindControls = function(eventRegistry) {
  */
 physthing.Ship.testScene1 = function() {
   // Add a planet
-  var planet = new physthing.Planet(10e3, 2000, 1e3);
+  var planet = new physthing.Planet(1e6, 2000, 1e6);
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
@@ -183,12 +182,13 @@ physthing.Ship.testScene1 = function() {
   planet.translate(new THREE.Vector3(-2500,0,0));
 
   // Add a sun
-  var planet = new physthing.Sun(100e3, 10000, 1e3);
+  var planet = new physthing.Sun(1e9, 10000, 1e6);
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
   physthing.scene.add(planet.parentMesh); // put object in scene
-  planet.translate(new THREE.Vector3(15e3,0,0));
+  planet.translate(new THREE.Vector3(30e3,0,0));
+  planet.physics.velocity = new THREE.Vector3(0,3000,0);
   
   // Add a ship
   var ship = new physthing.Ship();
