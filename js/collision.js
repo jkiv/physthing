@@ -31,8 +31,8 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   a.physics.velocity.sub(ua);
   b.physics.velocity.sub(ub);
   
-  a.physics.velocity.add(va.multiplyScalar(a.physics.collision.damping));
-  b.physics.velocity.add(vb.multiplyScalar(b.physics.collision.damping));
+  a.physics.velocity.add(va.multiplyScalar(1-a.physics.collision.damping));
+  b.physics.velocity.add(vb.multiplyScalar(1-b.physics.collision.damping));
   
   // 2. Remove overlap along collision normal (proportional to mass)
   var overlap = (a.physics.collision.radius + b.physics.collision.radius)
@@ -120,7 +120,7 @@ physthing.Collision.getOptions = function(radius, damping) {
   return {
     type: 'radius',
     radius: radius || 0.0,
-    damping: damping || 0.6
+    damping: damping || 0.1
   };
 }
 

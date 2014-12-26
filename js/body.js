@@ -11,8 +11,10 @@ physthing.Body = function ( mass ) {
   this.physics = {
     position: new THREE.Vector3(),
     velocity: new THREE.Vector3(),
+    acceleration: new THREE.Vector3(),
     angle: new THREE.Vector3(),
     angularVelocity: new THREE.Vector3(),
+    angularAcceleration: new THREE.Vector3(),
     mass: 1.,
     inverseMass: 1.,
     forces: [],
@@ -21,9 +23,15 @@ physthing.Body = function ( mass ) {
     gravity: null    // { interactionRadius }
   };
   
+  // Debug helpers TODO
+  this.debug = {
+    orientationArrow: null,
+    velocityArrow: null,
+    accelerationArrow: null
+  };
+  
   // Update properties via parameters
   this.setMass(mass);
-  //physthing.Body.prototype.setMass.call(this, mass);
 }
 
 physthing.Body.prototype.setMesh = function( mesh ) {
@@ -105,6 +113,11 @@ physthing.Body.prototype.update = function(timedelta) {
   // Update rotation velocity
   // TODO moments of inertia
   var angularVelocityDelta = netMoment.clone().multiplyScalar(timedelta);
+  this.physics.angularAcceleration.set(
+    angularVelocityDelta.x,
+    angularVelocityDelta.y,
+    angularVelocityDelta.z
+  );
   this.physics.angularVelocity.add(angularVelocityDelta);
   
   // Update rotation position
@@ -113,6 +126,11 @@ physthing.Body.prototype.update = function(timedelta) {
   
   // Update velocity
   var velocityDelta = netForce.clone().multiplyScalar(this.physics.inverseMass * timedelta);
+  this.physics.acceleration.set(
+    velocityDelta.x,
+    velocityDelta.y,
+    velocityDelta.z
+  );
   this.physics.velocity.add(velocityDelta);
   
   // Update position
@@ -188,8 +206,8 @@ physthing.Planet.prototype.update = function(timedelta) {
  * Conveniently create a Ship (Body).
  */
 physthing.Ship = function() {
-  var mass = 100;
-  var interactionRadius = 1e6;
+  var mass = 10;
+  var interactionRadius = 10e3;
   
   physthing.Body.call(this, mass);
   
@@ -203,10 +221,18 @@ physthing.Ship = function() {
   // TODO different collision models
   this.setCollision(physthing.Collision.getOptions(5));
   
-  // Ship state
-  this.isThrustOn = false;
-  this.isRotatingLeft = false;
-  this.isRotatingRight = false;
+  // Ship control parameters and state
+  this.control = {
+    thrust: {
+      forward: false,
+      magnitude: 1e3
+    },
+    rotation: {
+      cw: false,
+      ccw: false,
+      magnitude: 2
+    }
+  }
 }
 
 physthing.Ship.prototype = Object.create( physthing.Body.prototype );
@@ -219,7 +245,7 @@ physthing.Ship.prototype.createMesh = function() {
 
   // Create material, geometry, and mesh
   var material = new THREE.MeshLambertMaterial({
-    color:   0xffffff,
+    color:   0xff00ff,
     ambient: 0x000000,
     fog:     true
   });
@@ -228,23 +254,26 @@ physthing.Ship.prototype.createMesh = function() {
 
   var mesh = new THREE.Mesh( geometry, material );
   
-  // DEBUG arrow
-  mesh.add(new THREE.ArrowHelper(
-    new THREE.Vector3(1,0,0), // direction
-    new THREE.Vector3(0,0,0), // origin (local?)
-    15, // length
-    0x00FF00 // color?
-  ));
-  //
+  // Helper for orientation
+  this.orientationArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(1,0,0), // dir (unit)
+    new THREE.Vector3(0,0,0), // origin
+    20,                       // length
+    0x00ff00,                 // color (green)
+    5,                        // head length
+    3                         // head width
+  );
+  
+  mesh.add(this.orientationArrow);
   
   return mesh;
 }
 
 physthing.Ship.prototype.update = function(timedelta) {
-  // Update mesh?
-  // TODO emit some particles?
+  // TODO Update mesh?
+  // TODO Emit some particles?
   
-  // Do other things based on state?
+  // Apply thrust before resolving body physics
   this.applyThrust();
   
   // Update body physics
@@ -255,11 +284,11 @@ physthing.Ship.prototype.update = function(timedelta) {
  * Apply different forces on Ship given the Ship's state.
  */
 physthing.Ship.prototype.applyThrust = function() {
-  var thrustMag = 80e3;
-  var turnThrustMag = 5;
+  var thrustMag = this.control.thrust.magnitude;
+  var rotateThrustMag = this.control.rotation.magnitude;
 
   // Apply thrust force if ship is thrusting
-  if (this.isThrustOn === true) {
+  if (this.control.thrust.forward === true) {
     var thrustForce = new THREE.Vector3(thrustMag,0,0);
     thrustForce = this.mesh.localToWorld(thrustForce);
     thrustForce = this.parentMesh.worldToLocal(thrustForce);
@@ -267,46 +296,46 @@ physthing.Ship.prototype.applyThrust = function() {
     this.physics.forces.push(thrustForce);
   }
   
-  if (this.isRotatingLeft === true) {
-    var thrustMoment = new THREE.Vector3(0,0,turnThrustMag);
+  if (this.control.rotation.ccw === true) {
+    var thrustMoment = new THREE.Vector3(0,0,rotateThrustMag);
     this.physics.moments.push(thrustMoment);
   }
   
-  if (this.isRotatingRight === true) {
-    var thrustMoment = new THREE.Vector3(0,0,-turnThrustMag);
+  if (this.control.rotation.cw === true) {
+    var thrustMoment = new THREE.Vector3(0,0,-rotateThrustMag);
     this.physics.moments.push(thrustMoment);
   }
 }
 
 physthing.Ship.prototype.startThrust = function() {
-  this.isThrustOn = true;
+  this.control.thrust.forward = true;
 }
 
 physthing.Ship.prototype.stopThrust = function() {
-  this.isThrustOn = false;
+  this.control.thrust.forward = false;
 }
 
 physthing.Ship.prototype.startRotateLeft = function() {
-  this.isRotatingLeft = true;
+  this.control.rotation.ccw = true;
 }
 
 physthing.Ship.prototype.stopRotateLeft = function() {
-  this.isRotatingLeft = false;
+  this.control.rotation.ccw = false;
 }
 
 physthing.Ship.prototype.startRotateRight = function() {
-  this.isRotatingRight = true;
+  this.control.rotation.cw = true;
 }
 
 physthing.Ship.prototype.stopRotateRight = function() {
-  this.isRotatingRight = false;
+  this.control.rotation.cw = false;
 }
 
-physthing.Ship.prototype.bindControls = function(input) {
+physthing.Ship.prototype.bindControls = function(eventRegistry) {
   // TODO better scheme later...
   var that = this;
   
-  input.registerListener('key.down', function(e) {
+  eventRegistry.registerListener('key.down', function(e) {
     switch(e.keyCode) {
       case 65: // A
         that.startRotateLeft();
@@ -322,7 +351,7 @@ physthing.Ship.prototype.bindControls = function(input) {
     }
   });
   
-  input.registerListener('key.up', function(e) {
+  eventRegistry.registerListener('key.up', function(e) {
     switch(e.keyCode) {
       case 65: // A
         that.stopRotateLeft();
@@ -344,7 +373,7 @@ physthing.Ship.prototype.bindControls = function(input) {
  */
 physthing.Ship.testScene1 = function() {
   // Add a planet
-  var planet = new physthing.Planet(100e3, 100, 1e6);
+  var planet = new physthing.Planet(50e3, 100, 1e6);
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
@@ -357,17 +386,8 @@ physthing.Ship.testScene1 = function() {
   physthing.gravity.add(ship);    // tell gravity to handle this object
   physthing.collision.add(ship);  // tell collision to handle this object
   physthing.scene.add(ship.parentMesh); // put object in scene
-  ship.bindControls(physthing.input);
-  
-    // Add a planet
-  var planet = new physthing.Planet(10, 10, 1e6);
-  physthing.entities.push(planet);  // tell game loop to handle this object
-  physthing.gravity.add(planet);    // tell gravity to handle this object
-  physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.parentMesh); // put object in scene
-  planet.translate(new THREE.Vector3(0,100,0));
+  ship.bindControls(physthing.eventRegistry);
 
-  
-  //physthing.scene.remove(physthing.camera);
-  //ship.mesh.add(physthing.camera);
+  physthing.scene.remove(physthing.camera);
+  ship.parentMesh.add(physthing.camera);
 }

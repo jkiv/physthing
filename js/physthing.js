@@ -8,7 +8,7 @@ var physthing = {
   entities: [],
   gravity: null,
   collision: null,
-  input: null,
+  eventRegistry: null,
   clock: null
 };
 
@@ -102,10 +102,10 @@ physthing.initalizeScene = function(container) {
   physthing.clock = new THREE.Clock(true);
   physthing.collision = new physthing.Collision();
   physthing.gravity = new physthing.Gravity();
-  physthing.input = new physthing.Input(container);
+  physthing.eventRegistry = new physthing.Events(container);
   
   // Set up input callbacks
-  physthing.input.registerListener('window.resize', function(e) {
+  physthing.eventRegistry.registerListener('window.resize', function(e) {
     // Update camera
     physthing.camera.left = -window.innerWidth / 2;
     physthing.camera.right = window.innerWidth / 2;
@@ -117,7 +117,7 @@ physthing.initalizeScene = function(container) {
     physthing.renderer.setSize(window.innerWidth, window.innerHeight);
   });
   
-  physthing.input.registerListener('mouse.scroll', function(e) {
+  physthing.eventRegistry.registerListener('mouse.scroll', function(e) {
     // TODO camera.zoomVelocity + drag force + update()
     var maxZoom = 10.;
     var minZoom = 0.1;
