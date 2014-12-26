@@ -188,7 +188,7 @@ physthing.Ship.testScene1 = function() {
   physthing.collision.add(planet);  // tell collision to handle this object
   physthing.scene.add(planet.parentMesh); // put object in scene
   planet.translate(new THREE.Vector3(30e3,0,0));
-  planet.physics.velocity = new THREE.Vector3(0,3000,0);
+  planet.physics.velocity = new THREE.Vector3(0,1500,0);
   
   // Add a ship
   var ship = new physthing.Ship();
