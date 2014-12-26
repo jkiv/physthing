@@ -47,8 +47,6 @@ physthing.loop = function() {
   // Perform collisions and apply constraints
   physthing.collision.update(timedelta);
   
-  // TODO we want to apply thrust via keyboard /before/ collision.update()
- 
   // Update positions
   _.forEach(physthing.entities, function(entity) {
     entity.update(timedelta);

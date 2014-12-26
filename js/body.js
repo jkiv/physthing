@@ -1,8 +1,11 @@
+// TODO Forces in global space???
+
 // Body (base) ////////////////////////////////////////////////////////
 
 physthing.Body = function ( mass ) {
   // Three.js visual representation
-  this.mesh = null;
+  this.mesh = null; // apply rotations to this
+  this.parentMesh = new THREE.Object3D(); // apply translations to this
   
   // Body physics
   this.physics = {
@@ -24,9 +27,33 @@ physthing.Body = function ( mass ) {
 }
 
 physthing.Body.prototype.setMesh = function( mesh ) {
-  mesh.position = this.physics.position.clone(); // maintain local position
-  this.physics.position = mesh.position; // keep reference of mesh position
-  this.mesh = mesh;
+  // Remove previous mesh reference
+  if (this.mesh !== null) {
+    this.parentMesh.remove(mesh);
+  }
+  
+  if (mesh !== null) {
+    this.mesh = mesh;
+    this.parentMesh.add(mesh);
+    
+    this.parentMesh.position = this.physics.position.clone(); // maintain position
+    this.physics.position = this.parentMesh.position; // keep position reference in this.physics
+  }
+  // TODO maintain rotation
+}
+
+/**
+ * Wrap handling translations (by vector)
+ */
+physthing.Body.prototype.translate = function(v) {
+  this.parentMesh.translateOnAxis(v.clone().normalize(), v.length());
+}
+
+/**
+ * Wrap handling rotations (angle about z-axis).
+ */
+physthing.Body.prototype.rotate = function(a) {
+  this.mesh.rotateOnAxis(new THREE.Vector3(0,0,1), a);
 }
 
 /**
@@ -74,6 +101,15 @@ physthing.Body.prototype.update = function(timedelta) {
   var netMoment = _.reduce(this.physics.moments, function(net, moment) {
     return net.add(moment);
   }, new THREE.Vector3());
+
+  // Update rotation velocity
+  // TODO moments of inertia
+  var angularVelocityDelta = netMoment.clone().multiplyScalar(timedelta);
+  this.physics.angularVelocity.add(angularVelocityDelta);
+  
+  // Update rotation position
+  var angleDelta = this.physics.angularVelocity.clone().multiplyScalar(timedelta);
+  this.rotate(angleDelta.z);
   
   // Update velocity
   var velocityDelta = netForce.clone().multiplyScalar(this.physics.inverseMass * timedelta);
@@ -81,17 +117,7 @@ physthing.Body.prototype.update = function(timedelta) {
   
   // Update position
   var positionDelta = this.physics.velocity.clone().multiplyScalar(timedelta);
-  this.mesh.translateOnAxis(positionDelta.clone().normalize(), positionDelta.length());
-  
-  // Update rotation velocity
-  // TODO moments of inertia
-  var angularVelocityDelta = netMoment.clone().multiplyScalar(timedelta);
-  this.physics.angularVelocity.add(angularVelocityDelta);
-  
-  // Update rotation position
-  // TODO rotate around center of mass, rather than 
-  var angleDelta = this.physics.angularVelocity.clone().multiplyScalar(timedelta);
-  this.mesh.rotateOnAxis(angleDelta.clone().normalize(), angleDelta.length());
+  this.translate(positionDelta);
   
   // Clear force and constraint accumulators
   this.physics.forces = [];
@@ -162,8 +188,8 @@ physthing.Planet.prototype.update = function(timedelta) {
  * Conveniently create a Ship (Body).
  */
 physthing.Ship = function() {
-  var mass = 5;
-  var interactionRadius = 1e3;
+  var mass = 100;
+  var interactionRadius = 1e6;
   
   physthing.Body.call(this, mass);
   
@@ -175,7 +201,7 @@ physthing.Ship = function() {
   
   // Set collision
   // TODO different collision models
-  this.setCollision(physthing.Collision.getOptions(10));
+  this.setCollision(physthing.Collision.getOptions(5));
   
   // Ship state
   this.isThrustOn = false;
@@ -229,12 +255,15 @@ physthing.Ship.prototype.update = function(timedelta) {
  * Apply different forces on Ship given the Ship's state.
  */
 physthing.Ship.prototype.applyThrust = function() {
-  var thrustMag = 100;
-  var turnThrustMag = 1;
+  var thrustMag = 80e3;
+  var turnThrustMag = 5;
 
   // Apply thrust force if ship is thrusting
   if (this.isThrustOn === true) {
     var thrustForce = new THREE.Vector3(thrustMag,0,0);
+    thrustForce = this.mesh.localToWorld(thrustForce);
+    thrustForce = this.parentMesh.worldToLocal(thrustForce);
+    
     this.physics.forces.push(thrustForce);
   }
   
@@ -315,21 +344,29 @@ physthing.Ship.prototype.bindControls = function(input) {
  */
 physthing.Ship.testScene1 = function() {
   // Add a planet
-  var planet = new physthing.Planet(10, 100, 1e6);
+  var planet = new physthing.Planet(100e3, 100, 1e6);
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.mesh); // put object in scene
-  planet.mesh.translateX(-200);
+  physthing.scene.add(planet.parentMesh); // put object in scene
+  planet.translate(new THREE.Vector3(-200,0,0));
 
   // Add a ship
   var ship = new physthing.Ship();
   physthing.entities.push(ship);    // tell game loop to handle this object
   physthing.gravity.add(ship);    // tell gravity to handle this object
   physthing.collision.add(ship);  // tell collision to handle this object
-  physthing.scene.add(ship.mesh); // put object in scene
-  //ship.mesh.translateX(-200);
+  physthing.scene.add(ship.parentMesh); // put object in scene
   ship.bindControls(physthing.input);
+  
+    // Add a planet
+  var planet = new physthing.Planet(10, 10, 1e6);
+  physthing.entities.push(planet);  // tell game loop to handle this object
+  physthing.gravity.add(planet);    // tell gravity to handle this object
+  physthing.collision.add(planet);  // tell collision to handle this object
+  physthing.scene.add(planet.parentMesh); // put object in scene
+  planet.translate(new THREE.Vector3(0,100,0));
+
   
   //physthing.scene.remove(physthing.camera);
   //ship.mesh.add(physthing.camera);
