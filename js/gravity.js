@@ -1,5 +1,4 @@
-// TODO keep objects <0,0,0> locally to allow for rotations around center of mass.
-//      -- wrap in invisible object -> translations, rotate child?
+// TODO Forces in global space???
 
 /**
  * Handles gravity and body interactions.
@@ -116,7 +115,7 @@ physthing.Gravity.testScene1 = function() {
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.mesh); // put object in scene
+  physthing.scene.add(planet.parentMesh); // put object in scene
   
   // ... make it like a sun
   planet.mesh.material.color = new THREE.Color(0xffff00);
@@ -124,7 +123,7 @@ physthing.Gravity.testScene1 = function() {
   planet.mesh.add(new THREE.PointLight(0xffffff, 0.5, 1e6));
   
   physthing.scene.remove(physthing.camera);
-  planet.mesh.add(physthing.camera);
+  planet.parentMesh.add(physthing.camera);
   
   // Add planet two -- like a Planet
   var planet = new physthing.Planet(1e3, 15, 1000);
@@ -132,9 +131,9 @@ physthing.Gravity.testScene1 = function() {
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.mesh); // put object in scene
+  physthing.scene.add(planet.parentMesh); // put object in scene
   
-  planet.mesh.translateX(-400);
+  planet.translate(new THREE.Vector3(-400,0,0));
   planet.physics.velocity = new THREE.Vector3(0,-120,0);
   physthing.gravity.add(planet);
   
@@ -144,10 +143,9 @@ physthing.Gravity.testScene1 = function() {
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.mesh); // put object in scene
+  physthing.scene.add(planet.parentMesh); // put object in scene
   
-  planet.mesh.translateX(-400);
-  planet.mesh.translateY(50);
+  planet.translate(new THREE.Vector3(-400,50,0));
   planet.physics.velocity = new THREE.Vector3(-40,-120,0);
   physthing.gravity.add(planet);
 }

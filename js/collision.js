@@ -1,3 +1,5 @@
+// TODO Forces in global space???
+
 physthing.Collision = function() {
   this.bodies = [];
 }
@@ -9,11 +11,10 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   // TODO avoid exposing collision details
   
   // 1. Perform elastic collision along collision normal
-  
   // Get collision normal(s)
   var abVector = b.physics.position.clone().sub(a.physics.position);
-  var normA = abVector.normalize();   // a->b
-  var normB = normA.clone().negate(); // b->a
+  var normA = abVector.clone().normalize(); // a->b
+  var normB = normA.clone().negate();       // b->a
   
   var ua = a.physics.velocity.clone().projectOnVector(normA);
   var ub = b.physics.velocity.clone().projectOnVector(normB);
@@ -21,7 +22,7 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   var mb = b.physics.mass;
   var M = ma + mb;
   
-  if (M === 0) { return; } // avoid division by zero
+  if (M === 0) { return; } // avoid divisions by zero TODO more elegantly
   
   var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
   var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
@@ -35,8 +36,8 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   
   // 2. Remove overlap along collision normal (proportional to mass)
   var overlap = (a.physics.collision.radius + b.physics.collision.radius)
-                   - abVector.length();
-                   
+                   - abVector.length(); 
+
   a.physics.position.add(normB.clone().multiplyScalar(overlap * mb/M));
   b.physics.position.add(normA.clone().multiplyScalar(overlap * ma/M));
 }
@@ -137,11 +138,11 @@ physthing.Collision.testScene1 = function() {
   for(var r = -n/2; r < n/2; r++) {
     for(var c = -m/2; c < m/2; c++) {
       // Construct base planet
-      var planet = new physthing.Planet(radius, mass, collisionRadius);
+      var planet = new physthing.Planet(mass, radius, collisionRadius);
       physthing.entities.push(planet);  // tell game loop to handle this object
       physthing.gravity.add(planet);    // tell gravity to handle this object
       physthing.collision.add(planet);  // tell collision to handle this object
-      physthing.scene.add(planet.mesh); // put object in scene
+      physthing.scene.add(planet.parentMesh); // put object in scene
       
       // Customize planet
       var grey = (Math.random()*0.25 + 0.75);
@@ -149,8 +150,7 @@ physthing.Collision.testScene1 = function() {
                                                    grey+(0.1*Math.random()),
                                                    grey+(0.1*Math.random()));
       //planet.physics.velocity = new THREE.Vector3(-20*r, 20*c, 0);
-      planet.mesh.translateX(c*50);
-      planet.mesh.translateY(r*50);
+      planet.translate(new THREE.Vector3(c*50,r*50,0));
     }
   }
 }
