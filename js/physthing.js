@@ -122,7 +122,7 @@ physthing.initalizeScene = function(container) {
   
   physthing.eventRegistry.registerListener('mouse.scroll', function(e) {
     // TODO camera.zoomVelocity + drag force + update()
-    var maxZoom = 10.;
+    var maxZoom = 50.;
     var minZoom = 0.1;
     
     var zoom = physthing.camera.zoom;
@@ -143,6 +143,23 @@ physthing.initalizeScene = function(container) {
     // Zoom camera
     physthing.camera.zoom = zoom;
     physthing.camera.updateProjectionMatrix();
+  });
+  
+  physthing.eventRegistry.registerListener('key.down', function(e) {
+    if (e.keyCode == 90) { //z
+      // Zoom camera
+      physthing.camera.prevZoom = physthing.camera.zoom;
+      physthing.camera.zoom = 0.01;
+      physthing.camera.updateProjectionMatrix();
+    }
+  });
+  
+  physthing.eventRegistry.registerListener('key.up', function(e) {
+    if (e.keyCode == 90) {  //z
+      // Zoom camera
+      physthing.camera.zoom = physthing.camera.prevZoom;
+      physthing.camera.updateProjectionMatrix();
+    }
   });
 }
 
