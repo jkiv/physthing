@@ -75,7 +75,7 @@ physthing.initalizeScene = function(container) {
       window.innerHeight/2,
       -window.innerHeight/2,
       0.1,
-      1000
+      1e9 + 1000
     );
   
   // Create a scene
@@ -83,13 +83,16 @@ physthing.initalizeScene = function(container) {
 
   // Add camera to scene
   scene.add(camera);
-  camera.position.z = 300;
+  camera.position.z = 1e9;
   camera.zoom = 0.7;
 
   // Add ambient light to scene
-  var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
+  var directionalLight = new THREE.DirectionalLight( 0xffffff, 0. );
   directionalLight.position.set(0,0,1);
   scene.add(directionalLight);
+  
+  var ambientLight = new THREE.AmbientLight( 0xffffff );
+  scene.add(ambientLight);
   
   // Put render target into page
   renderer.setSize(window.innerWidth, window.innerHeight);

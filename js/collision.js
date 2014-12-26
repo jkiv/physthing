@@ -40,6 +40,8 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
 
   a.physics.position.add(normB.clone().multiplyScalar(overlap * mb/M));
   b.physics.position.add(normA.clone().multiplyScalar(overlap * ma/M));
+  
+  // 3. TODO Transfer angular momentum
 }
 
 /**
