@@ -36,7 +36,7 @@ physthing.Planet.prototype.createMesh = function( radius, options ) {
   });
 
   //var geometry = new THREE.CircleGeometry( radius, 64 );
-  var geometry = new THREE.SphereGeometry( radius, 32, 32 ); 
+  var geometry = new THREE.SphereGeometry( radius, 128, 128 ); 
 
   return new THREE.Mesh( geometry, material );
 }

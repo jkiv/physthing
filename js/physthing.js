@@ -75,7 +75,7 @@ physthing.initalizeScene = function(container) {
       window.innerHeight/2,
       -window.innerHeight/2,
       0.1,
-      1e9 + 1000
+      1e9 + 100
     );
   
   // Create a scene
