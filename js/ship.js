@@ -25,7 +25,7 @@ physthing.Ship = function() {
   this.control = {
     thrust: {
       forward: false,
-      magnitude: 10e3
+      magnitude: 1e3
     },
     rotation: {
       cw: false,
@@ -188,7 +188,7 @@ physthing.Ship.testScene1 = function() {
   physthing.collision.add(planet);  // tell collision to handle this object
   physthing.scene.add(planet.parentMesh); // put object in scene
   planet.translate(new THREE.Vector3(30e3,0,0));
-  planet.physics.velocity = new THREE.Vector3(0,1500,0);
+  planet.physics.velocity = new THREE.Vector3(0,2000,0);
   
   // Add a ship
   var ship = new physthing.Ship();

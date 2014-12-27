@@ -1,5 +1,3 @@
-// TODO Forces in global space???
-
 /**
  * Handles gravity and body interactions.
  */
@@ -111,16 +109,11 @@ physthing.Gravity.getOptions = function(radius) {
  */
 physthing.Gravity.testScene1 = function() {
   // Add planet one -- like a Sun
-  var planet = new physthing.Planet(50e3, 100, 1e6);
+  var planet = new physthing.Sun(50e3, 100, 1e6);
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
   physthing.scene.add(planet.parentMesh); // put object in scene
-  
-  // ... make it like a sun
-  planet.mesh.material.color = new THREE.Color(0xffff00);
-  planet.mesh.material.emissive = new THREE.Color(0x606000);
-  planet.mesh.add(new THREE.PointLight(0xffffff, 0.5, 1e6));
   
   physthing.scene.remove(physthing.camera);
   planet.parentMesh.add(physthing.camera);
