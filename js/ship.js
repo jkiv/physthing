@@ -205,7 +205,7 @@ physthing.Ship.prototype.bindControls = function(eventRegistry) {
  */
 physthing.Ship.testScene1 = function() {
   // Add a planet
-  var planet = new physthing.Planet(10e6, 2e3, 1e6);
+  var planet = new physthing.Planet(100e6, 2e3, 1e6);
   physthing.entities.push(planet);  // tell game loop to handle this object
   physthing.gravity.add(planet);    // tell gravity to handle this object
   physthing.collision.add(planet);  // tell collision to handle this object
@@ -228,7 +228,7 @@ physthing.Ship.testScene1 = function() {
   physthing.collision.add(ship);  // tell collision to handle this object
   physthing.scene.add(ship.parentMesh); // put object in scene
   ship.bindControls(physthing.eventRegistry);
-  ship.physics.velocity = new THREE.Vector3(0.3e3,18e3,0);
+  ship.physics.velocity = new THREE.Vector3(1.2e3,18e3,0);
 
   physthing.scene.remove(physthing.camera);
   ship.parentMesh.add(physthing.camera);
