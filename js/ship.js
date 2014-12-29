@@ -3,8 +3,7 @@
 /**
  * Conveniently create a Ship (Body).
  */
-physthing.Ship = function() {
-  var mass = 10;
+physthing.Ship = function( mass ) {
   var interactionRadius = 10e3;
   
   physthing.Body.call(this, mass);
@@ -18,8 +17,7 @@ physthing.Ship = function() {
   // Set collision
   // TODO different collision models
   this.setCollision(physthing.Collision.getOptions(5));
-  this.physics.collision.damping = 0.9;
-  
+  this.physics.collision.damping = 0.8;
   
   // Ship control parameters and state
   this.control = {
@@ -188,10 +186,10 @@ physthing.Ship.testScene1 = function() {
   physthing.collision.add(planet);  // tell collision to handle this object
   physthing.scene.add(planet.parentMesh); // put object in scene
   planet.translate(new THREE.Vector3(30e3,0,0));
-  planet.physics.velocity = new THREE.Vector3(0,1500,0);
+  planet.physics.velocity = new THREE.Vector3(0,2000,0);
   
   // Add a ship
-  var ship = new physthing.Ship();
+  var ship = new physthing.Ship(1e3);
   physthing.entities.push(ship);    // tell game loop to handle this object
   physthing.gravity.add(ship);    // tell gravity to handle this object
   physthing.collision.add(ship);  // tell collision to handle this object

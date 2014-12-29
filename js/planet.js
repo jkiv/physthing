@@ -36,7 +36,7 @@ physthing.Planet.prototype.createMesh = function( radius, options ) {
   });
 
   //var geometry = new THREE.CircleGeometry( radius, 64 );
-  var geometry = new THREE.SphereGeometry( radius, 128, 128 ); 
+  var geometry = new THREE.SphereGeometry( radius, 64, 64 );
 
   return new THREE.Mesh( geometry, material );
 }
@@ -80,8 +80,8 @@ physthing.Sun.prototype.createMesh = function( radius, options ) {
     fog: true
   });
   
-  //var geometry = new THREE.CircleGeometry( radius, 64 );
-  var geometry = new THREE.SphereGeometry( radius, 128, 128 ); 
+  var geometry = new THREE.CircleGeometry( radius, 64 );
+  //var geometry = new THREE.SphereGeometry( radius, 128, 128 ); 
 
   var mesh = new THREE.Mesh( geometry, material );
   

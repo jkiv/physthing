@@ -10,7 +10,8 @@ physthing.Collision = function() {
 physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   // TODO avoid exposing collision details
   
-  // 1. Perform elastic collision along collision normal
+  // 1. Perform collision along collision normal
+  //    (see http://en.wikipedia.org/wiki/Coefficient_of_restitution#Speeds_after_impact)
   // Get collision normal(s)
   var abVector = b.physics.position.clone().sub(a.physics.position);
   var normA = abVector.clone().normalize(); // a->b
@@ -21,18 +22,23 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   var ma = a.physics.mass;
   var mb = b.physics.mass;
   var M = ma + mb;
+  var Cra = 1 - a.physics.collision.damping;
+  var Crb = 1 - b.physics.collision.damping;
+  
   
   if (M === 0) { return; } // avoid divisions by zero TODO more elegantly
+ 
+  var vc = ua.clone().multiplyScalar(ma).add(ub.clone().multiplyScalar(mb)); // common part of va and vb
+  var va = vc.clone().add(ua.clone().sub(ub).multiplyScalar(mb*Cra)).multiplyScalar(1/M);
+  var vb = vc.clone().add(ub.clone().sub(ua).multiplyScalar(ma*Crb)).multiplyScalar(1/M);
   
-  var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
-  var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
+  // Completely elastic collision:  
+  //var va = ua.clone().multiplyScalar(ma - mb).add(ub.clone().multiplyScalar(2*mb)).multiplyScalar(1/M);
+  //var vb = ub.clone().multiplyScalar(mb - ma).add(ua.clone().multiplyScalar(2*ma)).multiplyScalar(1/M);
   
   // Replace ua, ub with new velocities va, vb
-  a.physics.velocity.sub(ua);
-  b.physics.velocity.sub(ub);
-  
-  a.physics.velocity.add(va.multiplyScalar(1-a.physics.collision.damping));
-  b.physics.velocity.add(vb.multiplyScalar(1-b.physics.collision.damping));
+  a.physics.velocity.sub(ua).add(va);
+  b.physics.velocity.sub(ub).add(vb);
   
   // 2. Remove overlap along collision normal (proportional to mass)
   var overlap = (a.physics.collision.radius + b.physics.collision.radius)
@@ -42,6 +48,8 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   b.physics.position.add(normA.clone().multiplyScalar(overlap * ma/M));
   
   // 3. TODO Transfer angular momentum
+  
+  // 4. TODO Apply frictional force
 }
 
 /**
@@ -134,7 +142,7 @@ physthing.Collision.testScene1 = function() {
   var m = 5;
   var mass = 10;
   var radius = 10;
-  var collisionRadius = 1e9;
+  var collisionRadius = 1e3;
   
   // Add a grid of planets with gravity and collision
   for(var r = -n/2; r < n/2; r++) {
