@@ -60,8 +60,6 @@ physthing.Planet.prototype.update = function(timedelta) {
 
 physthing.Sun = function( mass, radius, interactionRadius ) {
   physthing.Planet.call( this, mass, radius, interactionRadius );
-  
-  
 }
 
 physthing.Sun.prototype = Object.create( physthing.Body.prototype );
@@ -74,19 +72,19 @@ physthing.Sun.prototype.createMesh = function( radius, options ) {
   
   // Create material, geometry, and mesh
   var material = new THREE.MeshLambertMaterial({
-    color:   0xffff00,
+    color:   0xffffff,
     ambient: 0x000000,
     emissive: 0xffff00,
     fog: true
   });
   
-  var geometry = new THREE.CircleGeometry( radius, 64 );
-  //var geometry = new THREE.SphereGeometry( radius, 128, 128 ); 
+  //var geometry = new THREE.CircleGeometry( radius, 64 );
+  var geometry = new THREE.SphereGeometry( radius, 64, 64 ); 
 
   var mesh = new THREE.Mesh( geometry, material );
   
   // Put a point light inside for good measure
-  mesh.add(new THREE.PointLight(0xffffff, 0.5, 1e6*radius));
+  mesh.add(new THREE.PointLight(0xffff90, 0.5, 1e6*radius));
   
   return mesh;
 }
