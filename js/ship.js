@@ -17,14 +17,13 @@ physthing.Ship = function( mass ) {
   // Set collision
   // TODO different collision models
   this.setCollision(physthing.Collision.getOptions(5));
-  this.physics.collision.damping = 0.9;
-  
+  this.physics.collision.damping = 0.8;
   
   // Ship control parameters and state
   this.control = {
     thrust: {
       forward: false,
-      magnitude: 1e3
+      magnitude: 10e3
     },
     rotation: {
       cw: false,
