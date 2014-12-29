@@ -9,10 +9,30 @@
         margin: 0;
         padding: 0; 
 				overflow: hidden;
+        position: absolute;
+        font-family: monospace
+      }
+      
+      #controls {
+        position: absolute;
+        display: block;
+        top: 10px;
+        left: 10px;
+        width: 150px;
+        z-index: 1000;
+        color: #fff;
+        padding: 10px;
       }
     </style>
   </head>
   <body>
+    <div id="controls">
+      <strong>Controls:</strong> <br/>
+      W - thrust <br/>
+      A - rotate left <br/>
+      D - rotate right <br/>
+      scroll - zoom in/out
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>

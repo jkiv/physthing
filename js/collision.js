@@ -50,6 +50,8 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
   // 3. TODO Transfer angular momentum
   
   // 4. TODO Apply frictional force
+  // what is the normal force? from gravity?
+  // what is the coeff. of friction?
 }
 
 /**
