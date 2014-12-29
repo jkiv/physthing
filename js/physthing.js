@@ -122,7 +122,7 @@ physthing.initalizeScene = function(container) {
   
   physthing.eventRegistry.registerListener('mouse.scroll', function(e) {
     // TODO camera.zoomVelocity + drag force + update()
-    var maxZoom = 1e3;
+    var maxZoom = 10;
     var minZoom = 1e-6;
     var step = 0.1;
     
@@ -139,12 +139,14 @@ physthing.initalizeScene = function(container) {
     }
     
     zoom = Math.pow(10, logZoom);
-    zoom = Math.min(maxZoom, Math.max(minZoom, zoom));
 
     // Zoom camera
-    physthing.camera.zoom = zoom;
-    physthing.camera.logZoom = logZoom;
-    physthing.camera.updateProjectionMatrix();
+    if (zoom > minZoom && zoom < maxZoom) {
+      physthing.camera.zoom = zoom;
+      physthing.camera.logZoom = logZoom;
+      physthing.camera.updateProjectionMatrix();
+    }
+    
   });
   
 }
