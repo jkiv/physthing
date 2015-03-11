@@ -18,10 +18,12 @@ A little physics-based space game in Javascript and WebGL.
 * Angular momentum
 * Zoom-detail mapping
 * System creation/generation (seeded)
-  *  
+  *  stability conditions?
+  *  build units? e.g. planet w/ moons; sun w/ planets; etc.
 * Terminal velocity / angular velocity
 * Angular velocity lower threshold
 * Goals / End-game scenarios / Score / Gamify
 * HUD (fuel; dir, vel, and acc vectors)
 * Path tracing (past / future)
 * Persistent ship visibility (HUD?)
+* Way-points
