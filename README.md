@@ -31,3 +31,4 @@ A little physics-based space game in Javascript and WebGL.
   * energy
   * fuel
   * parts/components (e.g. angular velocity stabilizer)
+* Brown noise generator
