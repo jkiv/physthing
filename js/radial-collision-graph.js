@@ -216,7 +216,7 @@ RadialCollisionGraph.test1 = function() {
   F.physics.collision = { radius: 1 };
   F.translate(new THREE.Vector3(-1,0,0));
 
-  //
+  // TODO expected result
   
   var graph = new RadialCollisionGraph();
   

@@ -181,7 +181,7 @@ Collision.testScene1 = function(thing) {
       thing.entities.push(planet);  // tell game loop to handle this object
       thing.gravity.add(planet);    // tell gravity to handle this object
       thing.collision.add(planet);  // tell collision to handle this object
-      scene.add(planet.parentMesh); // put object in scene
+      thing.scene.add(planet.parentMesh); // put object in scene
       
       // Customize planet
       var grey = (Math.random()*0.25 + 0.75);
