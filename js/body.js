@@ -7,7 +7,7 @@ physthing.Body = function ( mass ) {
   
   // Body physics
   this.physics = {
-    position: new THREE.Vector3(),
+    position: this.parentMesh.position, // tie physics.position to parentMesh.position
     velocity: new THREE.Vector3(),
     acceleration: new THREE.Vector3(),
     angle: new THREE.Vector3(),

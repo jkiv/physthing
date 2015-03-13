@@ -2,6 +2,8 @@
 
 physthing.Collision = function() {
   this.bodies = [];
+  
+  this.graph = new RadialCollisionGraph();
 }
 
 /**
@@ -57,12 +59,21 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
 /**
  * Determine whether two objects are within each other's interacting range.
  */
-physthing.Collision.prototype.inInteractionRange = function(a, b) {
+//physthing.Collision.prototype.inInteractionRange = function(a, b) {
+physthing.Collision.overlappingFieldsOfInfluence = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.collision.radius
                         + b.physics.collision.radius;
   
   return distance <= maximumDistance;
+}
+
+/**
+ * Determine whether one object is fully contained by the other.
+ */
+physthing.Collision.insideFieldOfInfluence = function(a, b) {
+    return a.physics.position.distanceTo(b.physics.position)
+             <= Math.abs(a.physics.collision.radius - b.physics.collision.radius); 
 }
 
 physthing.Collision.prototype.findInteractingBodies = function(bodies){
@@ -91,7 +102,7 @@ physthing.Collision.prototype.findInteractingBodies = function(bodies){
       // Have we seen this pair before?
       if (_.contains(visitedFrom, bodyTo) === false) {
         // We have not seen this pair before. Test interaction.
-        if (that.inInteractionRange(bodyTo, bodyFrom)) {
+        if (that.overlappingFieldOfInfluence(bodyTo, bodyFrom)) {
            // Interacting pair, remember pair
            pairs.push([bodyTo, bodyFrom]);
         }
@@ -128,6 +139,7 @@ physthing.Collision.prototype.remove = function(body) {
   this.bodies = _.difference(this.bodies, [body]);
 }
 
+// TODO make a CollisionComponent?
 physthing.Collision.getOptions = function(radius, damping) {
   return {
     type: 'radius',
