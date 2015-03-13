@@ -60,7 +60,7 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
  * Determine whether two objects are within each other's interacting range.
  */
 //physthing.Collision.prototype.inInteractionRange = function(a, b) {
-physthing.Collision.overlappingFieldsOfInfluence = function(a, b) {
+physthing.Collision.testOverlappingFOI = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.collision.radius
                         + b.physics.collision.radius;
@@ -68,13 +68,17 @@ physthing.Collision.overlappingFieldsOfInfluence = function(a, b) {
   return distance <= maximumDistance;
 }
 
+physthing.Collision.prototype.testOverlappingFOI = physthing.Collision.testOverlappingFOI;
+
 /**
  * Determine whether one object is fully contained by the other.
  */
-physthing.Collision.insideFieldOfInfluence = function(a, b) {
+physthing.Collision.testFullyOverlappingFOI = function(a, b) {
     return a.physics.position.distanceTo(b.physics.position)
              <= Math.abs(a.physics.collision.radius - b.physics.collision.radius); 
 }
+
+physthing.Collision.prototype.testFullyOverlappingFOI = physthing.Collision.testFullyOverlappingFOI;
 
 physthing.Collision.prototype.findInteractingBodies = function(bodies){
   var visitedFrom = [];
@@ -102,7 +106,7 @@ physthing.Collision.prototype.findInteractingBodies = function(bodies){
       // Have we seen this pair before?
       if (_.contains(visitedFrom, bodyTo) === false) {
         // We have not seen this pair before. Test interaction.
-        if (that.overlappingFieldOfInfluence(bodyTo, bodyFrom)) {
+        if (that.testOverlappingFOI(bodyTo, bodyFrom)) {
            // Interacting pair, remember pair
            pairs.push([bodyTo, bodyFrom]);
         }

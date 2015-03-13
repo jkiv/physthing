@@ -17,11 +17,11 @@ var physthing = {
  */
 physthing.go = function(container) {
   // Initialize scene components
-  physthing.initalizeScene(container);
+  physthing.initializeScene(container);
   
   //physthing.Gravity.testScene1();   // Gravity test scene (1)
-  //physthing.Collision.testScene1(); // Collision test scene (1)
-  physthing.Ship.testScene1();
+  physthing.Collision.testScene1(); // Collision test scene (1)
+  //physthing.Ship.testScene1();
   
   // Start game loop
   physthing.loop();
@@ -60,7 +60,7 @@ physthing.loop = function() {
 /**
  * Initializes the base scene, with no bodies.
  */
-physthing.initalizeScene = function(container) {
+physthing.initializeScene = function(container) {
 
   // Create render target
   var renderer = new THREE.WebGLRenderer({

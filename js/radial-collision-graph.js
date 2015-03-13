@@ -43,12 +43,12 @@ var RadialCollisionGraph = function() {
   
 RadialCollisionGraph.prototype._partialCollisionTest = function(a, b) {
   this.debug.buildCompares++;
-  return physthing.Collision.overlappingFieldsOfInfluence(a.data, b.data);
+  return physthing.Collision.testOverlappingFOI(a.data, b.data);
 }
   
 RadialCollisionGraph.prototype._fullCollisionTest = function(a, b) {
   this.debug.buildCompares++;
-  return physthing.Collision.insideFieldOfInfluence(a.data, b.data);
+  return physthing.Collision.testFullyOverlappingFOI(a.data, b.data);
 }
 
 RadialCollisionGraph.prototype.add = function(node) {
@@ -62,7 +62,7 @@ RadialCollisionGraph.prototype.add = function(node) {
   
   // Sort list from largest collision radius to smallest
   
-  _.sortBy(graph.master, function(n) {
+  graph.master = _.sortBy(graph.master, function(n) {
       var r = graph._getNodeRadius(n);
       return (r === 0.0) ? 0.0 : 1.0/r;
   })
