@@ -33,7 +33,7 @@ var RadialCollisionGraph = function() {
   this.master = [];
   this.root = new RadialCollisionGraph.Node(null);
   
-  this.debug = { buildNodes: 0, buildCompares: 0 };
+  //this.debug = { buildNodes: 0, buildCompares: 0 };
   
   this._getNodeRadius = function(node) {
     return node.data.physics.collision.radius;
@@ -42,32 +42,41 @@ var RadialCollisionGraph = function() {
 
   
 RadialCollisionGraph.prototype._partialCollisionTest = function(a, b) {
-  this.debug.buildCompares++;
+  //this.debug.buildCompares++;
   return Collision.testOverlappingFOI(a.data, b.data);
 }
   
 RadialCollisionGraph.prototype._fullCollisionTest = function(a, b) {
-  this.debug.buildCompares++;
+  //this.debug.buildCompares++;
   return Collision.testFullyOverlappingFOI(a.data, b.data);
 }
 
-RadialCollisionGraph.prototype.add = function(node) {
-
-  // TODO node is-a Node?
+RadialCollisionGraph.prototype.add = function(data) {
 
   var graph = this;
     
   // Add new node to the master list
-  graph.master.push(node);
+  graph.master.push(new RadialCollisionGraph.Node(data));
   
   // Sort list from largest collision radius to smallest
-  
   graph.master = _.sortBy(graph.master, function(n) {
       var r = graph._getNodeRadius(n);
       return (r === 0.0) ? 0.0 : 1.0/r;
   })
   
   // TODO insert node into graph?
+}
+
+RadialCollisionGraph.prototype.remove = function(data) {
+
+  // Remove node with the same data from the master list
+  // (Assuming it remains sorted)
+  _.remove(this.master, function(n) {
+    n.data === data;
+  });
+  
+  // FIXME / TODO -- rebuild vs. remove nodes
+  this.build();
 }
 
 
@@ -77,8 +86,8 @@ RadialCollisionGraph.prototype.build = function() {
   // Clear root node
   graph.root.clearChildren();
   
-  this.debug.buildNodes = graph.master.length;
-  this.debug.buildCompares = 0;
+  //this.debug.buildNodes = graph.master.length;
+  //this.debug.buildCompares = 0;
   
   // Insert each node into the empty graph
   _.forEach(graph.master, function(n) {
@@ -145,7 +154,7 @@ RadialCollisionGraph.prototype._traversalStep = function(top, node, callback) {
   
   _.forEach(node.children, function(child) {
       // Call callback for top-child pair
-      callback(top, child);
+      callback(top.data, child.data);
       
       // Call callback for top-grandchildren
       graph._traversalStep(top, child, callback);
@@ -211,12 +220,12 @@ RadialCollisionGraph.test1 = function() {
   
   var graph = new RadialCollisionGraph();
   
-  graph.add(new RadialCollisionGraph.Node(A));
-  graph.add(new RadialCollisionGraph.Node(B));
-  graph.add(new RadialCollisionGraph.Node(C));
-  graph.add(new RadialCollisionGraph.Node(D));
-  graph.add(new RadialCollisionGraph.Node(E));
-  graph.add(new RadialCollisionGraph.Node(F));
+  graph.add(A);
+  graph.add(B);
+  graph.add(C);
+  graph.add(D);
+  graph.add(E);
+  graph.add(F);
   
   return graph;
 }

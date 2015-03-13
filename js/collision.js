@@ -80,6 +80,7 @@ Collision.testFullyOverlappingFOI = function(a, b) {
 
 Collision.prototype.testFullyOverlappingFOI = Collision.testFullyOverlappingFOI;
 
+/*
 Collision.prototype.findInteractingBodies = function(bodies){
   var visitedFrom = [];
   var pairs = [];
@@ -116,6 +117,7 @@ Collision.prototype.findInteractingBodies = function(bodies){
   
   return pairs;
 }
+*/
 
 /**
  * Update collision resolver.
@@ -123,24 +125,33 @@ Collision.prototype.findInteractingBodies = function(bodies){
 Collision.prototype.update = function(timedelta) {
   var that = this;
   
+  this.graph.build(); // FIXME TODO rebuilding graph every frame is performant?
+  
   // Apply body forces/constraints to colliding objects
+  /*
   _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
     that.performCollisionConstraints(pair[0], pair[1]);
   });
+  */
+  this.graph.traverse(function(a, b) {
+    that.performCollisionConstraints(a, b);
+  })
 }
 
 /**
  * Put [body] under the guise of this Collision object.
  */
 Collision.prototype.add = function(body) {
-  this.bodies = _.union(this.bodies, [body]);
+  //this.bodies = _.union(this.bodies, [body]);
+  this.graph.add(body);
 }
 
 /**
  * Remove [body] from the guise of this Collision object.
  */
 Collision.prototype.remove = function(body) {
-  this.bodies = _.difference(this.bodies, [body]);
+  //this.bodies = _.difference(this.bodies, [body]);
+  this.graph.remove(body);
 }
 
 // TODO make a CollisionComponent?

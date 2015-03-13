@@ -49,7 +49,7 @@ physthing.prototype.loop = function() {
   // Update positions
   _.forEach(this.entities, function(entity) {
     entity.update(timedelta);
-  });
+  })
   
   // Render scene
   var thing = this;
