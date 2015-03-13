@@ -1,6 +1,6 @@
 // TODO Forces in global space???
 
-physthing.Collision = function() {
+Collision = function() {
   this.bodies = [];
   
   this.graph = new RadialCollisionGraph();
@@ -9,7 +9,7 @@ physthing.Collision = function() {
 /**
  * Compute and add collision forces for two interacting bodies [a] and [b].
  */
-physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
+Collision.prototype.performCollisionConstraints = function(a, b) {
   // TODO avoid exposing collision details
   
   // 1. Perform collision along collision normal
@@ -59,8 +59,8 @@ physthing.Collision.prototype.performCollisionConstraints = function(a, b) {
 /**
  * Determine whether two objects are within each other's interacting range.
  */
-//physthing.Collision.prototype.inInteractionRange = function(a, b) {
-physthing.Collision.testOverlappingFOI = function(a, b) {
+//Collision.prototype.inInteractionRange = function(a, b) {
+Collision.testOverlappingFOI = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.collision.radius
                         + b.physics.collision.radius;
@@ -68,19 +68,19 @@ physthing.Collision.testOverlappingFOI = function(a, b) {
   return distance <= maximumDistance;
 }
 
-physthing.Collision.prototype.testOverlappingFOI = physthing.Collision.testOverlappingFOI;
+Collision.prototype.testOverlappingFOI = Collision.testOverlappingFOI;
 
 /**
  * Determine whether one object is fully contained by the other.
  */
-physthing.Collision.testFullyOverlappingFOI = function(a, b) {
+Collision.testFullyOverlappingFOI = function(a, b) {
     return a.physics.position.distanceTo(b.physics.position)
              <= Math.abs(a.physics.collision.radius - b.physics.collision.radius); 
 }
 
-physthing.Collision.prototype.testFullyOverlappingFOI = physthing.Collision.testFullyOverlappingFOI;
+Collision.prototype.testFullyOverlappingFOI = Collision.testFullyOverlappingFOI;
 
-physthing.Collision.prototype.findInteractingBodies = function(bodies){
+Collision.prototype.findInteractingBodies = function(bodies){
   var visitedFrom = [];
   var pairs = [];
   var that = this;
@@ -120,7 +120,7 @@ physthing.Collision.prototype.findInteractingBodies = function(bodies){
 /**
  * Update collision resolver.
  */
-physthing.Collision.prototype.update = function(timedelta) {
+Collision.prototype.update = function(timedelta) {
   var that = this;
   
   // Apply body forces/constraints to colliding objects
@@ -132,19 +132,19 @@ physthing.Collision.prototype.update = function(timedelta) {
 /**
  * Put [body] under the guise of this Collision object.
  */
-physthing.Collision.prototype.add = function(body) {
+Collision.prototype.add = function(body) {
   this.bodies = _.union(this.bodies, [body]);
 }
 
 /**
  * Remove [body] from the guise of this Collision object.
  */
-physthing.Collision.prototype.remove = function(body) {
+Collision.prototype.remove = function(body) {
   this.bodies = _.difference(this.bodies, [body]);
 }
 
 // TODO make a CollisionComponent?
-physthing.Collision.getOptions = function(radius, damping) {
+Collision.getOptions = function(radius, damping) {
   return {
     type: 'radius',
     radius: radius || 0.0,
@@ -155,7 +155,7 @@ physthing.Collision.getOptions = function(radius, damping) {
 /**
  * Collision test scene (1).
  */
-physthing.Collision.testScene1 = function() {
+Collision.testScene1 = function(thing) {
   var n = 5;
   var m = 5;
   var mass = 10;
@@ -166,11 +166,11 @@ physthing.Collision.testScene1 = function() {
   for(var r = -n/2; r < n/2; r++) {
     for(var c = -m/2; c < m/2; c++) {
       // Construct base planet
-      var planet = new physthing.Planet(mass, radius, collisionRadius);
-      physthing.entities.push(planet);  // tell game loop to handle this object
-      physthing.gravity.add(planet);    // tell gravity to handle this object
-      physthing.collision.add(planet);  // tell collision to handle this object
-      physthing.scene.add(planet.parentMesh); // put object in scene
+      var planet = new Planet(mass, radius, collisionRadius);
+      thing.entities.push(planet);  // tell game loop to handle this object
+      thing.gravity.add(planet);    // tell gravity to handle this object
+      thing.collision.add(planet);  // tell collision to handle this object
+      scene.add(planet.parentMesh); // put object in scene
       
       // Customize planet
       var grey = (Math.random()*0.25 + 0.75);

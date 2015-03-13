@@ -52,7 +52,8 @@
         // Grab target DOM object
         var container = document.createElement('div');
         document.body.appendChild(container);
-        physthing.go(container);
+        var thing = new physthing();
+        thing.go(container);
         
         // TODO add physthing functionality to clean up state, and start afresh, from command line.
       });

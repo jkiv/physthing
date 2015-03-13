@@ -1,6 +1,6 @@
 // Body (base) ////////////////////////////////////////////////////////
 
-physthing.Body = function ( mass ) {
+Body = function ( mass ) {
   // Three.js visual representation
   this.mesh = null; // apply rotations to this
   this.parentMesh = new THREE.Object3D(); // apply translations to this
@@ -32,7 +32,7 @@ physthing.Body = function ( mass ) {
   this.setMass(mass);
 }
 
-physthing.Body.prototype.setMesh = function( mesh ) {
+Body.prototype.setMesh = function( mesh ) {
   // Remove previous mesh reference
   if (this.mesh !== null) {
     this.parentMesh.remove(mesh);
@@ -51,34 +51,34 @@ physthing.Body.prototype.setMesh = function( mesh ) {
 /**
  * Wrap handling translations (by vector)
  */
-physthing.Body.prototype.translate = function(v) {
+Body.prototype.translate = function(v) {
   this.parentMesh.translateOnAxis(v.clone().normalize(), v.length());
 }
 
 /**
  * Wrap handling rotations (angle about z-axis).
  */
-physthing.Body.prototype.rotate = function(a) {
+Body.prototype.rotate = function(a) {
   this.mesh.rotateOnAxis(new THREE.Vector3(0,0,1), a);
 }
 
 /**
  * Get gravity options for this body.
- * \see physthing.Gravity.getOptions
+ * \see Gravity.getOptions
  */
-physthing.Body.prototype.setGravity = function( gravity ) {
+Body.prototype.setGravity = function( gravity ) {
   this.physics.gravity = gravity; 
 }
 
 /**
  * Get collision options for this body.
- * \see physthing.Collision.getOptions
+ * \see Collision.getOptions
  */
-physthing.Body.prototype.setCollision = function( collision ) {
+Body.prototype.setCollision = function( collision ) {
   this.physics.collision = collision;
 }
 
-physthing.Body.prototype.setMass = function( mass ) {
+Body.prototype.setMass = function( mass ) {
   this.physics.mass = mass || this.physics.mass;
   this.physics.inverseMass = 1/mass || this.physics.inverseMass;
 }
@@ -86,7 +86,7 @@ physthing.Body.prototype.setMass = function( mass ) {
 /**
  * Accumulate applied forces and update position.
  */
-physthing.Body.prototype.update = function(timedelta) {
+Body.prototype.update = function(timedelta) {
   // TODO forces and whatnot are in global space, but we're altering
   //      local positions/rotations.
   //      Convert things to world and back to local?
