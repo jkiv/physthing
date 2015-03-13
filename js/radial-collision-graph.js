@@ -17,12 +17,16 @@
     
   In the FO case, it is possible to say that the smaller object does not overlap those objects that are non-overlapping with the larger. That is, the NO case of a parent with its siblings extends to its children and its siblings. This is not necessarily true with the PO case.
   
-  For now, the PO case is treated as simultaneous NO and FO cases. Thus, the fewer PO cases the better.
+  For now, the PO case is treated as simultaneous NO and FO cases. To avoid an FO traversal exiting elsewhere in the graph, the node is copied in the PO case -- so the graph remains a tree. (Not yet sure if there is a more elegant solution.)
   
   ---
   
   For force interactions, it is imaginable that test meshes are inside one another as they simply represent the field in which the bodies will interact. However, for collisions, the test meshes are typically represented by physical boundaries. In this case, objects are likely all in the NO case with one another.
-
+  
+  ---
+  
+  Currently, the graph is rebuild each frame. It would be more advantageous to move Nodes around the graph when they change, or remove and re-add the node (and its children).
+  
 */
 
 var RadialCollisionGraph = function() {
@@ -193,7 +197,6 @@ RadialCollisionGraph.test1 = function() {
   D.physics.collision = { radius: 1 };
   D.translate(new THREE.Vector3(-10,0,0));
   
-  /*
   var E = new physthing.Body(1);
   E.name = "E";
   E.physics.collision = { radius: 10 };
@@ -203,7 +206,7 @@ RadialCollisionGraph.test1 = function() {
   F.name = "F";
   F.physics.collision = { radius: 1 };
   F.translate(new THREE.Vector3(-1,0,0));
-  */
+
   //
   
   var graph = new RadialCollisionGraph();
@@ -211,9 +214,9 @@ RadialCollisionGraph.test1 = function() {
   graph.add(new RadialCollisionGraph.Node(A));
   graph.add(new RadialCollisionGraph.Node(B));
   graph.add(new RadialCollisionGraph.Node(C));
-  graph.add(new RadialCollisionGraph.Node(D));/*
+  graph.add(new RadialCollisionGraph.Node(D));
   graph.add(new RadialCollisionGraph.Node(E));
-  graph.add(new RadialCollisionGraph.Node(F));*/
+  graph.add(new RadialCollisionGraph.Node(F));
   
   return graph;
 }
