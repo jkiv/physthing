@@ -1,30 +1,29 @@
-/**
- * phything Namespace
- */
-var physthing = {
-  scene: null,
-  camera: null,
-  renderer: null,
-  entities: [],
-  gravity: null,
-  collision: null,
-  eventRegistry: null,
-  clock: null
-};
+//
+
+var physthing = function() {
+  this.scene = null;
+  this.camera = null;
+  this.renderer = null;
+  this.entities = [];
+  this.gravity = null;
+  this.collision = null;
+  this.eventRegistry = null;
+  this.clock = null;
+}
 
 /**
  * Main entry point.
  */
-physthing.go = function(container) {
+physthing.prototype.go = function(container) {
   // Initialize scene components
-  physthing.initializeScene(container);
+  this.initializeScene(container);
   
-  //physthing.Gravity.testScene1();   // Gravity test scene (1)
-  physthing.Collision.testScene1(); // Collision test scene (1)
-  //physthing.Ship.testScene1();
+  //Gravity.testScene1(this);   // Gravity test scene (1)
+  //Collision.testScene1(this); // Collision test scene (1)
+  Ship.testScene1(this);
   
   // Start game loop
-  physthing.loop();
+  this.loop();
 }
 
 /**
@@ -36,32 +35,32 @@ physthing.go = function(container) {
  *   3. Accumulate forces and update velocity and position
  *   4. Render frame.
  */
-physthing.loop = function() {
+physthing.prototype.loop = function() {
   // Get time delta since last frame
-  var timedelta = physthing.clock.getDelta();
+  var timedelta = this.clock.getDelta();
   timedelta = Math.min(1/30., timedelta); // clamp to 30 fps (for physics)
   
   // Perform gravity interactions and apply gravitational forces
-  physthing.gravity.update(timedelta);
+  this.gravity.update(timedelta);
   
   // Perform collisions and apply constraints
-  physthing.collision.update(timedelta);
+  this.collision.update(timedelta);
   
   // Update positions
-  _.forEach(physthing.entities, function(entity) {
+  _.forEach(this.entities, function(entity) {
     entity.update(timedelta);
   });
   
   // Render scene
-  requestAnimationFrame(physthing.loop); // using built-in browser animation API
-  physthing.renderScene();
+  var thing = this;
+  requestAnimationFrame(function() { thing.loop(); }); // using built-in browser animation API
+  this.renderScene();
 }
 
 /**
  * Initializes the base scene, with no bodies.
  */
-physthing.initializeScene = function(container) {
-
+physthing.prototype.initializeScene = function(container) {
   // Create render target
   var renderer = new THREE.WebGLRenderer({
     antialias: true // ...might as well try
@@ -99,34 +98,36 @@ physthing.initializeScene = function(container) {
   container.appendChild(renderer.domElement);
   
   // Hold references for future use
-  physthing.scene = scene;
-  physthing.renderer = renderer;
-  physthing.camera = camera;
-  physthing.clock = new THREE.Clock(true);
-  physthing.collision = new physthing.Collision();
-  physthing.gravity = new physthing.Gravity();
-  physthing.eventRegistry = new physthing.Events(container);
+  this.scene = scene;
+  this.renderer = renderer;
+  this.camera = camera;
+  this.clock = new THREE.Clock(true);
+  this.collision = new Collision();
+  this.gravity = new Gravity();
+  this.eventRegistry = new Events(container);
   
   // Set up input callbacks
-  physthing.eventRegistry.registerListener('window.resize', function(e) {
+  var thing = this;
+  
+  this.eventRegistry.registerListener('window.resize', function(e) {
     // Update camera
-    physthing.camera.left = -window.innerWidth / 2;
-    physthing.camera.right = window.innerWidth / 2;
-    physthing.camera.top = window.innerHeight / 2;
-    physthing.camera.bottom = -window.innerHeight / 2;
-    physthing.camera.updateProjectionMatrix();
+    thing.camera.left = -window.innerWidth / 2;
+    thing.camera.right = window.innerWidth / 2;
+    thing.camera.top = window.innerHeight / 2;
+    thing.camera.bottom = -window.innerHeight / 2;
+    thing.camera.updateProjectionMatrix();
 
     // Update renderer
-    physthing.renderer.setSize(window.innerWidth, window.innerHeight);
+    thing.renderer.setSize(window.innerWidth, window.innerHeight);
   });
   
-  physthing.eventRegistry.registerListener('mouse.scroll', function(e) {
+  this.eventRegistry.registerListener('mouse.scroll', function(e) {
     // TODO camera.zoomVelocity + drag force + update()
     var maxZoom = 10;
     var minZoom = 1e-6;
     var step = 0.1;
     
-    var logZoom = physthing.camera.logZoom || Math.log10(physthing.camera.zoom);
+    var logZoom = thing.camera.logZoom || Math.log10(thing.camera.zoom);
     
     // Compute new zoom value
     if (e.delta > 0.0) {
@@ -142,9 +143,9 @@ physthing.initializeScene = function(container) {
 
     // Zoom camera
     if (zoom > minZoom && zoom < maxZoom) {
-      physthing.camera.zoom = zoom;
-      physthing.camera.logZoom = logZoom;
-      physthing.camera.updateProjectionMatrix();
+      thing.camera.zoom = zoom;
+      thing.camera.logZoom = logZoom;
+      thing.camera.updateProjectionMatrix();
     }
     
   });
@@ -154,6 +155,6 @@ physthing.initializeScene = function(container) {
 /**
  * Renders the scene using the current renderer, scene, and camera.
  */
-physthing.renderScene = function() {
-  physthing.renderer.render(physthing.scene, physthing.camera);
+physthing.prototype.renderScene = function() {
+  this.renderer.render(this.scene, this.camera);
 }

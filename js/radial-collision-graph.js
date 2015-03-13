@@ -43,12 +43,12 @@ var RadialCollisionGraph = function() {
   
 RadialCollisionGraph.prototype._partialCollisionTest = function(a, b) {
   this.debug.buildCompares++;
-  return physthing.Collision.testOverlappingFOI(a.data, b.data);
+  return Collision.testOverlappingFOI(a.data, b.data);
 }
   
 RadialCollisionGraph.prototype._fullCollisionTest = function(a, b) {
   this.debug.buildCompares++;
-  return physthing.Collision.testFullyOverlappingFOI(a.data, b.data);
+  return Collision.testFullyOverlappingFOI(a.data, b.data);
 }
 
 RadialCollisionGraph.prototype.add = function(node) {
@@ -177,32 +177,32 @@ RadialCollisionGraph.Node.prototype.clearChildren = function() {
 
 RadialCollisionGraph.test1 = function() {
 
-  var A = new physthing.Body(1);
+  var A = new Body(1);
   A.name = "A";
   A.physics.collision = { radius: 10 };
   A.translate(new THREE.Vector3(-15,0,0));
   
-  var B = new physthing.Body(1);
+  var B = new Body(1);
   B.name = "B";
   B.physics.collision = { radius: 10 };
   B.translate(new THREE.Vector3(0,0,0));
   
-  var C = new physthing.Body(1);
+  var C = new Body(1);
   C.name = "C";
   C.physics.collision = { radius: 10 };
   C.translate(new THREE.Vector3(15,0,0));
   
-  var D = new physthing.Body(1);
+  var D = new Body(1);
   D.name = "D";
   D.physics.collision = { radius: 1 };
   D.translate(new THREE.Vector3(-10,0,0));
   
-  var E = new physthing.Body(1);
+  var E = new Body(1);
   E.name = "E";
   E.physics.collision = { radius: 10 };
   E.translate(new THREE.Vector3(30,0,0));
   
-  var F = new physthing.Body(1);
+  var F = new Body(1);
   F.name = "F";
   F.physics.collision = { radius: 1 };
   F.translate(new THREE.Vector3(-1,0,0));

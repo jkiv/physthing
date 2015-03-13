@@ -1,7 +1,7 @@
 /**
  * Wrapper for DOM callbacks
  */
-physthing.Events = function(dom) {
+Events = function(dom) {
   this.dom = dom;
   this.callbacks = {};
 
@@ -13,7 +13,7 @@ physthing.Events = function(dom) {
  * Initialize Events system.
  * Attach DOM events to [this].
  */
-physthing.Events.prototype.init = function() {
+Events.prototype.init = function() {
   var that = this;
   
   // Register DOM events
@@ -48,7 +48,7 @@ physthing.Events.prototype.init = function() {
 /**
  * Register listener for arbitrary event.
  */
-physthing.Events.prototype.registerListener = function(type, callback) {
+Events.prototype.registerListener = function(type, callback) {
   if (this.callbacks[type] === undefined) {
     this.callbacks[type] = [];
   }
@@ -59,7 +59,7 @@ physthing.Events.prototype.registerListener = function(type, callback) {
 /**
  * Unregister listener for arbitrary event.
  */
-physthing.Events.prototype.unregisterListener = function(type, callback) {
+Events.prototype.unregisterListener = function(type, callback) {
   if (this.callbacks[type] !== undefined) {
     this.callbacks[type] = _.difference(this.callbacks[type], [callback]);
   }
@@ -68,7 +68,7 @@ physthing.Events.prototype.unregisterListener = function(type, callback) {
 /**
  * Dispatch event [e] of type [type] to registered callbacks.
  */
-physthing.Events.prototype.dispatch = function(type, e) {
+Events.prototype.dispatch = function(type, e) {
   _.forEach(this.callbacks[type], function(callback) {
     callback(e);
   });
@@ -77,14 +77,14 @@ physthing.Events.prototype.dispatch = function(type, e) {
 /**
  * Dispatcher for mouse move event.
  */
-physthing.Events.prototype.dispatchMouseMove = function(e) {
+Events.prototype.dispatchMouseMove = function(e) {
   this.dispatch('mouse.move', e);
 }
 
 /**
  * Dispatcher for mouse scroll event.
  */
-physthing.Events.prototype.dispatchMouseScroll = function(e) {
+Events.prototype.dispatchMouseScroll = function(e) {
   e.delta = e.wheelDelta || -e.detail; // Chrome || Firefox
   this.dispatch('mouse.scroll', e);
 }
@@ -92,7 +92,7 @@ physthing.Events.prototype.dispatchMouseScroll = function(e) {
 /**
  * Dispatcher for key down event.
  */
-physthing.Events.prototype.dispatchKeyDown = function(e) {
+Events.prototype.dispatchKeyDown = function(e) {
   if (e.repeat === false) {
     this.dispatch('key.down', e);
   }
@@ -101,13 +101,13 @@ physthing.Events.prototype.dispatchKeyDown = function(e) {
 /**
  * Dispatcher for key up event.
  */
-physthing.Events.prototype.dispatchKeyUp = function(e) {
+Events.prototype.dispatchKeyUp = function(e) {
   this.dispatch('key.up', e);
 }
 
 /**
  * Dispatcher for window resize event.
  */
-physthing.Events.prototype.dispatchWindowResize = function(e) {
+Events.prototype.dispatchWindowResize = function(e) {
   this.dispatch('window.resize', e);
 }

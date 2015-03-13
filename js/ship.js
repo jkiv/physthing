@@ -3,20 +3,20 @@
 /**
  * Conveniently create a Ship (Body).
  */
-physthing.Ship = function( mass ) {
+Ship = function( mass ) {
   var interactionRadius = 10e3;
   
-  physthing.Body.call(this, mass);
+  Body.call(this, mass);
   
   // Create a mesh
   this.setMesh(this.createMesh());
   
   // Set gravity
-  this.setGravity(physthing.Gravity.getOptions(interactionRadius))
+  this.setGravity(Gravity.getOptions(interactionRadius))
   
   // Set collision
   // TODO square collision model
-  this.setCollision(physthing.Collision.getOptions(5));
+  this.setCollision(Collision.getOptions(5));
   this.physics.collision.damping = 0.8;
   
   // Ship control parameters and state
@@ -63,12 +63,12 @@ physthing.Ship = function( mass ) {
   this.control.attitude.source = this.parts.attitude.basic;
 }
 
-physthing.Ship.prototype = Object.create( physthing.Body.prototype );
+Ship.prototype = Object.create( Body.prototype );
 
 /**
  * Conveniently create a Ship-like mesh.
  */
-physthing.Ship.prototype.createMesh = function() {
+Ship.prototype.createMesh = function() {
   // TODO use options to change features
 
   // Create material, geometry, and mesh
@@ -98,7 +98,7 @@ physthing.Ship.prototype.createMesh = function() {
   return mesh;
 }
 
-physthing.Ship.prototype.update = function(timedelta) {
+Ship.prototype.update = function(timedelta) {
   // TODO Update mesh?
   // TODO Emit some particles?
   
@@ -106,13 +106,13 @@ physthing.Ship.prototype.update = function(timedelta) {
   this.applyThrust();
   
   // Update body physics
-  physthing.Body.prototype.update.call(this, timedelta);
+  Body.prototype.update.call(this, timedelta);
 }
 
 /**
  * Apply different forces on Ship given the Ship's state.
  */
-physthing.Ship.prototype.applyThrust = function() {
+Ship.prototype.applyThrust = function() {
   var thrustSrc = this.control.thrust.source;
   var attitudeSrc = this.control.attitude.source;
 
@@ -139,31 +139,31 @@ physthing.Ship.prototype.applyThrust = function() {
   }
 }
 
-physthing.Ship.prototype.startThrust = function() {
+Ship.prototype.startThrust = function() {
   this.control.thrust.forward = true;
 }
 
-physthing.Ship.prototype.stopThrust = function() {
+Ship.prototype.stopThrust = function() {
   this.control.thrust.forward = false;
 }
 
-physthing.Ship.prototype.startRotateLeft = function() {
+Ship.prototype.startRotateLeft = function() {
   this.control.attitude.ccw = true;
 }
 
-physthing.Ship.prototype.stopRotateLeft = function() {
+Ship.prototype.stopRotateLeft = function() {
   this.control.attitude.ccw = false;
 }
 
-physthing.Ship.prototype.startRotateRight = function() {
+Ship.prototype.startRotateRight = function() {
   this.control.attitude.cw = true;
 }
 
-physthing.Ship.prototype.stopRotateRight = function() {
+Ship.prototype.stopRotateRight = function() {
   this.control.attitude.cw = false;
 }
 
-physthing.Ship.prototype.bindControls = function(eventRegistry) {
+Ship.prototype.bindControls = function(eventRegistry) {
   // TODO better scheme later...
   var that = this;
   
@@ -203,33 +203,33 @@ physthing.Ship.prototype.bindControls = function(eventRegistry) {
 /**
  * Gravity test scene (1).
  */
-physthing.Ship.testScene1 = function() {
+Ship.testScene1 = function(thing) {
   // Add a planet
-  var planet = new physthing.Planet(100e6, 2e3, 1e6);
-  physthing.entities.push(planet);  // tell game loop to handle this object
-  physthing.gravity.add(planet);    // tell gravity to handle this object
-  physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.parentMesh); // put object in scene
+  var planet = new Planet(100e6, 2e3, 1e6);
+  thing.entities.push(planet);  // tell game loop to handle this object
+  thing.gravity.add(planet);    // tell gravity to handle this object
+  thing.collision.add(planet);  // tell collision to handle this object
+  thing.scene.add(planet.parentMesh); // put object in scene
   planet.translate(new THREE.Vector3(0,5e3,0));
   planet.physics.velocity = new THREE.Vector3(0,18e3,0);
 
   // Add a sun
-  var planet = new physthing.Sun(1e12, 100e3, 100e6);
-  physthing.entities.push(planet);  // tell game loop to handle this object
-  physthing.gravity.add(planet);    // tell gravity to handle this object
-  physthing.collision.add(planet);  // tell collision to handle this object
-  physthing.scene.add(planet.parentMesh); // put object in scene
+  var planet = new Sun(1e12, 100e3, 100e6);
+  thing.entities.push(planet);  // tell game loop to handle this object
+  thing.gravity.add(planet);    // tell gravity to handle this object
+  thing.collision.add(planet);  // tell collision to handle this object
+  thing.scene.add(planet.parentMesh); // put object in scene
   planet.translate(new THREE.Vector3(300e3,0,0));
   
   // Add a ship
-  var ship = new physthing.Ship(1e3);
-  physthing.entities.push(ship);    // tell game loop to handle this object
-  physthing.gravity.add(ship);    // tell gravity to handle this object
-  physthing.collision.add(ship);  // tell collision to handle this object
-  physthing.scene.add(ship.parentMesh); // put object in scene
-  ship.bindControls(physthing.eventRegistry);
+  var ship = new Ship(1e3);
+  thing.entities.push(ship);    // tell game loop to handle this object
+  thing.gravity.add(ship);    // tell gravity to handle this object
+  thing.collision.add(ship);  // tell collision to handle this object
+  thing.scene.add(ship.parentMesh); // put object in scene
+  ship.bindControls(thing.eventRegistry);
   ship.physics.velocity = new THREE.Vector3(1.2e3,18e3,0);
 
-  physthing.scene.remove(physthing.camera);
-  ship.parentMesh.add(physthing.camera);
+  thing.scene.remove(thing.camera);
+  ship.parentMesh.add(thing.camera);
 }

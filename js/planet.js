@@ -3,28 +3,28 @@
 /**
  * Conveniently create a Planet (Body).
  */
-physthing.Planet = function ( mass, radius, interactionRadius ) { 
-  physthing.Body.call( this, mass );
+Planet = function ( mass, radius, interactionRadius ) { 
+  Body.call( this, mass );
   
   // Create a mesh
   this.setMesh(this.createMesh(radius));
   
   // Set gravity
-  this.setGravity(physthing.Gravity.getOptions(interactionRadius))
+  this.setGravity(Gravity.getOptions(interactionRadius))
   
   // Set collision
-  this.setCollision(physthing.Collision.getOptions(radius));
+  this.setCollision(Collision.getOptions(radius));
   
   // Remember the Planet's radius
   this.radius = radius;
 }
 
-physthing.Planet.prototype = Object.create( physthing.Body.prototype );
+Planet.prototype = Object.create( Body.prototype );
 
 /**
  * Conveniently create a Planet-like mesh.
  */
-physthing.Planet.prototype.createMesh = function( radius, options ) {
+Planet.prototype.createMesh = function( radius, options ) {
   // TODO use options to change features
   
   // Create material, geometry, and mesh
@@ -41,33 +41,33 @@ physthing.Planet.prototype.createMesh = function( radius, options ) {
   return new THREE.Mesh( geometry, material );
 }
 
-physthing.Planet.prototype.setRadius = function( radius ) {
+Planet.prototype.setRadius = function( radius ) {
   // TODO update a bunch of unrelated things :(
 }
 
 /**
  * Accumulate applied forces and update position.
  */
-physthing.Planet.prototype.update = function(timedelta) {
+Planet.prototype.update = function(timedelta) {
   // Update mesh?
   // Do other things based on state?
   
   // Update body physics
-  physthing.Body.prototype.update.call(this, timedelta);
+  Body.prototype.update.call(this, timedelta);
 }
 
 // Sun ////////////////////////////////////////////////////////////////
 
-physthing.Sun = function( mass, radius, interactionRadius ) {
-  physthing.Planet.call( this, mass, radius, interactionRadius );
+Sun = function( mass, radius, interactionRadius ) {
+  Planet.call( this, mass, radius, interactionRadius );
 }
 
-physthing.Sun.prototype = Object.create( physthing.Body.prototype );
+Sun.prototype = Object.create( Body.prototype );
 
 /**
  * Conveniently create a Planet-like mesh.
  */
-physthing.Sun.prototype.createMesh = function( radius, options ) {
+Sun.prototype.createMesh = function( radius, options ) {
   // TODO use options to change features
   
   // Create material, geometry, and mesh
