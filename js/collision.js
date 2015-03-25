@@ -4,6 +4,7 @@ Collision = function() {
   this.bodies = [];
   
   this.graph = new RadialCollisionGraph();
+  //this.graph = new NaiveCollisionGraph();
 }
 
 /**
@@ -26,7 +27,6 @@ Collision.prototype.performCollisionConstraints = function(a, b) {
   var M = ma + mb;
   var Cra = 1 - a.physics.collision.damping;
   var Crb = 1 - b.physics.collision.damping;
-  
   
   if (M === 0) { return; } // avoid divisions by zero TODO more elegantly
  
@@ -80,45 +80,6 @@ Collision.testFullyOverlappingFOI = function(a, b) {
 
 Collision.prototype.testFullyOverlappingFOI = Collision.testFullyOverlappingFOI;
 
-/*
-Collision.prototype.findInteractingBodies = function(bodies){
-  var visitedFrom = [];
-  var pairs = [];
-  var that = this;
-  
-  // Find interacting bodies the dumb way
-  // 1. for each body, test against all other bodies
-  // 2. skip bodies in inner loop that were seen in outer loop
-  _.forEach(bodies, function(bodyFrom) {
-    // Start remembering who we visited from [bodyFrom]
-    visitedFrom.push(bodyFrom);
-    
-    // Skip body if no collision present
-    if (bodyFrom.physics.collision === undefined) {
-      return;
-    }
-    
-    _.forEach(bodies, function(bodyTo) {
-      // Skip body if no collision present
-      if (bodyTo.physics.collision === undefined) {
-        return;
-      }
-      
-      // Have we seen this pair before?
-      if (_.contains(visitedFrom, bodyTo) === false) {
-        // We have not seen this pair before. Test interaction.
-        if (that.testOverlappingFOI(bodyTo, bodyFrom)) {
-           // Interacting pair, remember pair
-           pairs.push([bodyTo, bodyFrom]);
-        }
-      }
-    }); 
-  });
-  
-  return pairs;
-}
-*/
-
 /**
  * Update collision resolver.
  */
@@ -128,11 +89,6 @@ Collision.prototype.update = function(timedelta) {
   this.graph.build(); // FIXME TODO rebuilding graph every frame is performant?
   
   // Apply body forces/constraints to colliding objects
-  /*
-  _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
-    that.performCollisionConstraints(pair[0], pair[1]);
-  });
-  */
   this.graph.traverse(function(a, b) {
     that.performCollisionConstraints(a, b);
   })
@@ -142,7 +98,6 @@ Collision.prototype.update = function(timedelta) {
  * Put [body] under the guise of this Collision object.
  */
 Collision.prototype.add = function(body) {
-  //this.bodies = _.union(this.bodies, [body]);
   this.graph.add(body);
 }
 
@@ -150,7 +105,6 @@ Collision.prototype.add = function(body) {
  * Remove [body] from the guise of this Collision object.
  */
 Collision.prototype.remove = function(body) {
-  //this.bodies = _.difference(this.bodies, [body]);
   this.graph.remove(body);
 }
 
@@ -167,29 +121,40 @@ Collision.getOptions = function(radius, damping) {
  * Collision test scene (1).
  */
 Collision.testScene1 = function(thing) {
-  var n = 5;
-  var m = 5;
+  var n = 7;
+  var m = 7;
   var mass = 10;
   var radius = 10;
-  var collisionRadius = 1e3;
+  var collisionRadius = 100;
   
   // Add a grid of planets with gravity and collision
   for(var r = -n/2; r < n/2; r++) {
     for(var c = -m/2; c < m/2; c++) {
       // Construct base planet
       var planet = new Planet(mass, radius, collisionRadius);
+      
+      // Customize planet          
+      var grey = (Math.random()*0.1 + 0.8);
+      
+      var material = new THREE.MeshLambertMaterial({
+        color:   new THREE.Color(grey, grey, grey),
+        ambient: 0xcccccc,
+        fog:     true
+      });
+      
+      var geometry = new THREE.SphereGeometry( radius, radius, 8 );
+
+      var mesh = new THREE.Mesh( geometry, material );
+      
+      planet.setMesh(mesh);
+      
+      planet.translate(new THREE.Vector3(c*50,r*50,0));
+      
+      // Add planet to physthing, gravity, collision, ...
       thing.entities.push(planet);  // tell game loop to handle this object
       thing.gravity.add(planet);    // tell gravity to handle this object
       thing.collision.add(planet);  // tell collision to handle this object
       thing.scene.add(planet.parentMesh); // put object in scene
-      
-      // Customize planet
-      var grey = (Math.random()*0.25 + 0.75);
-      planet.mesh.material.color = new THREE.Color(grey+(0.1*Math.random()),
-                                                   grey+(0.1*Math.random()),
-                                                   grey+(0.1*Math.random()));
-      //planet.physics.velocity = new THREE.Vector3(-20*r, 20*c, 0);
-      planet.translate(new THREE.Vector3(c*50,r*50,0));
     }
   }
 }

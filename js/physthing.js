@@ -17,9 +17,9 @@ var physthing = function() {
 physthing.prototype.go = function(container) {
   // Initialize scene components
   this.initializeScene(container);
-  
+
   //Gravity.testScene1(this);   // Gravity test scene (1)
-  //Collision.testScene1(this); // Collision test scene (1)
+  Collision.testScene1(this); // Collision test scene (1)
   //Ship.testScene1(this);
   
   // Start game loop

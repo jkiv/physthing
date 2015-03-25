@@ -33,7 +33,7 @@ var RadialCollisionGraph = function() {
   this.master = [];
   this.root = new RadialCollisionGraph.Node(null);
   
-  //this.debug = { buildNodes: 0, buildCompares: 0 };
+  //this.debug = { nodes: 0, compares: 0 };
   
   this._getNodeRadius = function(node) {
     return node.data.physics.collision.radius;
@@ -42,12 +42,12 @@ var RadialCollisionGraph = function() {
 
   
 RadialCollisionGraph.prototype._partialCollisionTest = function(a, b) {
-  //this.debug.buildCompares++;
+  //this.debug.compares++;
   return Collision.testOverlappingFOI(a.data, b.data);
 }
   
 RadialCollisionGraph.prototype._fullCollisionTest = function(a, b) {
-  //this.debug.buildCompares++;
+  //this.debug.compares++;
   return Collision.testFullyOverlappingFOI(a.data, b.data);
 }
 
@@ -86,8 +86,8 @@ RadialCollisionGraph.prototype.build = function() {
   // Clear root node
   graph.root.clearChildren();
   
-  //this.debug.buildNodes = graph.master.length;
-  //this.debug.buildCompares = 0;
+  //this.debug.nodes = graph.master.length;
+  //this.debug.compares = 0;
   
   // Insert each node into the empty graph
   _.forEach(graph.master, function(n) {
