@@ -86,7 +86,8 @@ Collision.prototype.testFullyOverlappingFOI = Collision.testFullyOverlappingFOI;
 Collision.prototype.update = function(timedelta) {
   var that = this;
   
-  this.graph.build(); // FIXME TODO rebuilding graph every frame is performant?
+  //this.graph.build(); // FIXME TODO rebuilding graph every frame is performant?
+  this.graph.rebuild();
   
   // Apply body forces/constraints to colliding objects
   this.graph.traverse(function(a, b) {

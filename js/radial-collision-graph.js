@@ -96,11 +96,11 @@ RadialCollisionGraph.prototype.build = function() {
       n.clearChildren();
       
       // Insert into graph
-      graph._insertNode(n, graph.root);
+      graph._insertNode(graph.root, n);
   })
 }
 
-RadialCollisionGraph.prototype._insertNode = function(node, parent) {
+RadialCollisionGraph.prototype._insertNode = function(parent, node) {
   var graph = this;
   var children = parent.children;
   var fullyOverlapping = false;
@@ -110,7 +110,7 @@ RadialCollisionGraph.prototype._insertNode = function(node, parent) {
     if (graph._partialCollisionTest(child, node)) {
     
       // Recursively add node to children of this child
-      graph._insertNode(node, child);
+      graph._insertNode(child, node);
     
       if (graph._fullCollisionTest(child, node)) {
         // Fully-overlapping (FO)
@@ -124,7 +124,7 @@ RadialCollisionGraph.prototype._insertNode = function(node, parent) {
         //  -- continue on with siblings
         
         // Make a copy of [node] (different parent/children, same data)
-        node = new RadialCollisionGraph.Node(node.data);
+        // node = new RadialCollisionGraph.Node(node.data);
       }
       
     }
@@ -137,30 +137,35 @@ RadialCollisionGraph.prototype._insertNode = function(node, parent) {
   
   // Make node as child of parent
   if (fullyOverlapping !== true) {
+    
+    if (children[parent] === undefined) {
+      children.parent = [];
+    }
+    
     node.parents.push(parent);
-    children.push(node);
+    children[parent].push(node);
   }
 }
 
 RadialCollisionGraph.prototype.traverse = function(callback) {
   var graph = this;
-  _.forEach(graph.root.children, function(child) {
+  _.forEach(graph.root.children[null], function(child) {
       graph._traversalStep(child, child, callback);
   })
 }
 
-RadialCollisionGraph.prototype._traversalStep = function(top, node, callback) {
+RadialCollisionGraph.prototype._traversalStep = function(top, parent, node, callback) {
   var graph = this;
   
-  _.forEach(node.children, function(child) {
-      // Call callback for top-child pair
+  _.forEach(node.children[parent], function(child) {
+      // Call callback for top<->child pair
       callback(top.data, child.data);
       
-      // Call callback for top-grandchildren
-      graph._traversalStep(top, child, callback);
+      // Call callback for top<->grandchildren pairs
+      graph._traversalStep(top, node, child, callback);
       
-      // Call callback for child-grandchildren
-      graph._traversalStep(node, child, callback);
+      // Call callback for child<->grandchildren pairs
+      graph._traversalStep(node, node, child, callback);
   })
 }
 
@@ -178,9 +183,12 @@ RadialCollisionGraph.Node.prototype.clearParents = function() {
 }
 
 RadialCollisionGraph.Node.prototype.clearChildren = function() {
-  this.children.splice(0, this.children.length);
+  var children = {}; // FIXME slow?
 }
 
+RadialCollisionGraph.prototype.rebuild = function() {
+  
+}
 
 //// TESTS
 
