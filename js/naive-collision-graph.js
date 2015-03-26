@@ -4,9 +4,10 @@
   Shares interface with other collision graphs but is unoptimized. It tests every combination of every known object for a collision.
 */
 
-var NaiveCollisionGraph = function() {
+var NaiveCollisionGraph = function(collisionTest) {
   this.master = [];
   //this.debug = { nodes: 0, compares: 0 };
+  this._collisionTest = collisionTest;
 }
   
 NaiveCollisionGraph.prototype._collisionTest = function(a, b) {

@@ -94,6 +94,9 @@ RadialCollisionGraph.prototype.build = function() {
       // Insert into graph
       graph._insertNode(graph.root, n);
   })
+  
+  // No longer requires rebuild
+  this.dirty = false;
 }
 
 RadialCollisionGraph.prototype._insertNode = function(parent, node) {
@@ -103,14 +106,12 @@ RadialCollisionGraph.prototype._insertNode = function(parent, node) {
   
   _.forEach(children, function(child) {
   
-    console.log(child);
-  
-    if (graph._partialCollisionTest(child, node)) {
+    if (graph._partialCollisionTest(child.data, node.data)) {
     
       // Recursively add node to children of this child
       graph._insertNode(child, node);
     
-      if (graph._fullCollisionTest(child, node)) {
+      if (graph._fullCollisionTest(child.data, node.data)) {
         // Fully-overlapping (FO)
         //  -- no need to continue with siblings
         fullyOverlapping = true;
@@ -171,7 +172,6 @@ RadialCollisionGraph.prototype.update = function() {
   // Perform a complete rebuild if add/remove since last build
   if (this.dirty === true) {
     this.build();
-    this.dirty = false;
     return;
   }
 
@@ -201,7 +201,7 @@ RadialCollisionGraph.prototype.update = function() {
   var that = this;
   
   // Go through the master list (in order) and update each node
-  _.foreach(that.master, function(node) {
+  _.forEach(that.master, function(node) {
 
     // Traverse node's .next chain
     while (node != null) {
@@ -215,10 +215,10 @@ RadialCollisionGraph.prototype.update = function() {
       }
       
       // Is the node /not/ fully overlapping with parent?
-      if (!that._fullCollisionTest(node, parent)) {
+      if (!that._fullCollisionTest(node.data, parent.data)) {
       
         // Is the node not /partially/ overlapping with parent?
-        if (!that._partialCollisionTest(node, parent)) {
+        if (!that._partialCollisionTest(node.data, parent.data)) {
           // NO case -- remove from parent
           
           // Remove node's parent
@@ -226,12 +226,12 @@ RadialCollisionGraph.prototype.update = function() {
           
           // Make children parent's children
           // -- insert using binary insert
-          _.foreach(node.children, function(child) {
+          _.forEach(node.children, function(child) {
           
             var at = _.sortedIndex(parent.children, child, function(item) {
-              var r = graph._getNodeRadius(n);
+              var r = that._getNodeRadius(item);
               return (r === 0.0) ? 0.0 : 1.0/r;
-            }, that);
+            });
           
             // Make a child of node's parent
             parent.children.splice(at, 0, child);
@@ -250,9 +250,9 @@ RadialCollisionGraph.prototype.update = function() {
         var grandparent = parent.parent; // (should exist, root node at most)
         
         var at = _.sortedIndex(grandparent.children, node, function(item) {
-          var r = graph._getNodeRadius(n);
+          var r = that._getNodeRadius(item);
           return (r === 0.0) ? 0.0 : 1.0/r;
-        }, that);
+        });
         
         // Node may already be a child of grandparent (sibling of parent),
         // in which case `at' should point to it already.

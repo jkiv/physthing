@@ -12,8 +12,10 @@ Gravity = function(G, graph) {
   // Use the "complicated" (i.e. not necessarily more optimal)
   // RadialCollisionGraph for collisions.
   this.graph = new RadialCollisionGraph(getNodeCollisionRadius,
-                                        this.testOverlappingFOI,
-                                        this.testFullyOverlappingFOI);
+                                        Gravity.testOverlappingFOI,
+                                        Gravity.testFullyOverlappingFOI);
+                                        
+  this.graph = new NaiveCollisionGraph(Gravity.testOverlappingFOI);
 }
 
 /**
@@ -34,7 +36,7 @@ Gravity.prototype.applyBodyForces = function(a, b) {
 /**
  * Determine whether two objects are within each other's interacting range.
  */
-Gravity.prototype.testOverlappingFOI = function(a, b) {
+Gravity.testOverlappingFOI = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.gravity.interactionRadius
                         + b.physics.gravity.interactionRadius;
@@ -42,13 +44,17 @@ Gravity.prototype.testOverlappingFOI = function(a, b) {
   return distance <= maximumDistance;
 }
 
+Gravity.prototype.testOverlappingFOI = Gravity.testOverlappingFOI;
+
 /**
  * Determine whether one object is fully contained by the other.
  */
-Gravity.prototype.testFullyOverlappingFOI = function(a, b) {
+Gravity.testFullyOverlappingFOI = function(a, b) {
     return a.physics.position.distanceTo(b.physics.position)
              <= Math.abs(a.physics.gravity.interactionRadius - b.physics.gravity.interactionRadius); 
 }
+
+Gravity.prototype.testOverlappingFOI = Gravity.testOverlappingFOI;
 
 /**
  * Finds interacting bodies in [bodies] and applies gravitational force
@@ -57,8 +63,8 @@ Gravity.prototype.testFullyOverlappingFOI = function(a, b) {
  */
 Gravity.prototype.update = function(timedelta) {
   // Update the graph
-  this.graph.update();
-  //this.graph.build(); // brute-force update
+  //this.graph.update();
+  this.graph.build(); // brute-force update
   
   // Apply body forces to interacting objects
   var that = this;

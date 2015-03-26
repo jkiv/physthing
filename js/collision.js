@@ -1,6 +1,6 @@
 // TODO Forces in global space???
 
-Collision = function() {
+Collision = function(graph) {
   // Callback to map node->radius for RadialCollisionGraph
   var getNodeCollisionRadius = function(node) {
     return node.data.physics.collision.radius;
@@ -11,6 +11,8 @@ Collision = function() {
   this.graph = new RadialCollisionGraph(getNodeCollisionRadius,
                                         Collision.testOverlappingFOI,
                                         Collision.testFullyOverlappingFOI);
+
+  this.graph = new NaiveCollisionGraph(Collision.testOverlappingFOI);                                        
 }
 
 /**
@@ -90,6 +92,10 @@ Collision.prototype.testFullyOverlappingFOI = Collision.testFullyOverlappingFOI;
  * Update collision resolver.
  */
 Collision.prototype.update = function(timedelta) {
+  // Update the graph
+  //this.graph.update();
+  this.graph.build(); // brute-force update
+
   // Apply body forces/constraints to colliding objects
   var that = this;
   this.graph.traverse(function(a, b) {
@@ -124,18 +130,18 @@ Collision.getOptions = function(radius, damping) {
  * Collision test scene (1).
  */
 Collision.testScene1 = function(thing) {
-  var n = 1;
-  var m = 2;
+  var n = 7;
+  var m = 7;
   var mass = 100;
-  var radius = 10;
-  var collisionRadius = 500;
-  var separation = collisionRadius/2;
+  var radius = 10; // aka collision radius
+  var gravityRadius = 1000;
+  var separation = radius*10;
   
   // Add a grid of planets with gravity and collision
-  for(var r = -n/2.0; r < n/2.0; r++) {
-    for(var c = -m/2.0; c < m/2.0; c++) {
+  for(var r = -(n-1)/2; r <= (n-1)/2; r++) {
+    for(var c = -(m-1)/2; c <= (m-1)/2; c++) {
       // Construct base planet
-      var planet = new Planet(mass, radius, collisionRadius);
+      var planet = new Planet(mass, radius, gravityRadius);
       
       // Customize planet          
       var grey = (Math.random()*0.1 + 0.8);
@@ -146,7 +152,7 @@ Collision.testScene1 = function(thing) {
         fog:     true
       });
       
-      var geometry = new THREE.SphereGeometry( radius, radius, 64 );
+      var geometry = new THREE.SphereGeometry( radius, radius, 16 );
 
       var mesh = new THREE.Mesh( geometry, material );
       
