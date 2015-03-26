@@ -44,8 +44,8 @@ Collision.prototype.performCollisionConstraints = function(a, b) {
   
   // 2. Remove overlap along collision normal (proportional to mass)
   var overlap = (a.physics.collision.radius + b.physics.collision.radius)
-                   - abVector.length(); 
-
+                   - abVector.length();
+                   
   a.physics.position.add(normB.clone().multiplyScalar(overlap * mb/M));
   b.physics.position.add(normA.clone().multiplyScalar(overlap * ma/M));
   
@@ -121,15 +121,16 @@ Collision.getOptions = function(radius, damping) {
  * Collision test scene (1).
  */
 Collision.testScene1 = function(thing) {
-  var n = 7;
-  var m = 7;
-  var mass = 10;
+  var n = 1;
+  var m = 2;
+  var mass = 100;
   var radius = 10;
-  var collisionRadius = 100;
+  var collisionRadius = 500;
+  var separation = collisionRadius/2;
   
   // Add a grid of planets with gravity and collision
-  for(var r = -n/2; r < n/2; r++) {
-    for(var c = -m/2; c < m/2; c++) {
+  for(var r = -n/2.0; r < n/2.0; r++) {
+    for(var c = -m/2.0; c < m/2.0; c++) {
       // Construct base planet
       var planet = new Planet(mass, radius, collisionRadius);
       
@@ -142,13 +143,13 @@ Collision.testScene1 = function(thing) {
         fog:     true
       });
       
-      var geometry = new THREE.SphereGeometry( radius, radius, 8 );
+      var geometry = new THREE.SphereGeometry( radius, radius, 64 );
 
       var mesh = new THREE.Mesh( geometry, material );
       
       planet.setMesh(mesh);
       
-      planet.translate(new THREE.Vector3(c*50,r*50,0));
+      planet.translate(new THREE.Vector3(c*separation,r*separation,0));
       
       // Add planet to physthing, gravity, collision, ...
       thing.entities.push(planet);  // tell game loop to handle this object
