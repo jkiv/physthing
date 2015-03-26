@@ -12,7 +12,7 @@ Collision = function(graph) {
                                         Collision.testOverlappingFOI,
                                         Collision.testFullyOverlappingFOI);
 
-  this.graph = new NaiveCollisionGraph(Collision.testOverlappingFOI);                                        
+  //this.graph = new NaiveCollisionGraph(Collision.testOverlappingFOI);
 }
 
 /**
@@ -53,7 +53,7 @@ Collision.prototype.performCollisionConstraints = function(a, b) {
   // 2. Remove overlap along collision normal (proportional to mass)
   var overlap = (a.physics.collision.radius + b.physics.collision.radius)
                    - abVector.length();
-                   
+
   a.physics.position.add(normB.clone().multiplyScalar(overlap * mb/M));
   b.physics.position.add(normA.clone().multiplyScalar(overlap * ma/M));
   

@@ -203,13 +203,19 @@ RadialCollisionGraph.prototype.update = function() {
   // Go through the master list (in order) and update each node
   _.forEach(that.master, function(node) {
 
+    console.log('Looking at ' + ((node.data === null) ? 'root' : node.data.name));
+  
     // Traverse node's .next chain
-    while (node != null) {
+    while (node !== null) {
       
       var parent = node.parent;
       
+      console.log(' -- parent: ' + ((parent.data === null) ? 'root' : parent.data.name));
+
+      
       // Skip root node as parent
       if (parent == that.root) {
+        console.log(' -- skipped.');
         node = node.next;
         continue;
       }
@@ -219,10 +225,15 @@ RadialCollisionGraph.prototype.update = function() {
       
         // Is the node not /partially/ overlapping with parent?
         if (!that._partialCollisionTest(node.data, parent.data)) {
-          // NO case -- remove from parent
+          // NO case --
           
-          // Remove node's parent
+          console.log(' -- not overlapping.');
+          
+          // Disassociate from parent
           node.clearParent();
+          parent.children = _.remove(parent.children, function(item) {
+            return (item.data === node.data);
+          })
           
           // Make children parent's children
           // -- insert using binary insert
@@ -240,10 +251,12 @@ RadialCollisionGraph.prototype.update = function() {
             child.parent = parent;
           })
           
+          // Disassociate node
           node.clearChildren();
         }
         else {
           // PO case -- no special need to do anything (afiact) 
+          console.log(' -- partially overlapping.');
         }
         
         // In both PO and NO case, make the node a sibling of the parent (in order)
@@ -260,11 +273,21 @@ RadialCollisionGraph.prototype.update = function() {
         if (at < grandparent.children.length
             && grandparent.children[at].data === node.data)
         {
+          console.log(' -- ' + grandparent.children[at].data.name + ' == ' + node.data.name);
+
+        
           // Already a sibling
-          node.next = grandparent.children[at];
+          //node.next = grandparent.children[at];
         }
         else
         {
+          if ( at < grandparent.children.length )
+            console.log(' -- ' + grandparent.children[at].data.name + ' != ' + node.data.name);
+          else if (at > 0)
+            console.log(' -- ' + grandparent.children[at-1].data.name + ' larger than ' + node.data.name);
+          else
+            console.log(' -- ' + grandparent.children[at].data.name + ' smaller than ' + node.data.name);
+        
           // Not a sibling, clone and insert in node.next chain
           var other = new RadialCollisionGraph.Node(node.data);
           other.next = node.next;
@@ -277,6 +300,9 @@ RadialCollisionGraph.prototype.update = function() {
         }
         
       }
+      else {
+        console.log(' -- fully overlapping.');
+      }
       
       // Handle node for next "parent"
       node = node.next;
@@ -284,6 +310,21 @@ RadialCollisionGraph.prototype.update = function() {
     
   })
   
+}
+
+RadialCollisionGraph.print = function(node, level) {
+  var name = (node.data === null) ? "(root)" : node.data.name;
+  
+  if (node.children.length == 0) {
+    return name;
+  }
+  else {     
+    return (name + ': { \n' + _.map(node.children, function(child) { return RadialCollisionGraph.print(child, level+1); }).join(', ') + ' }'); 
+  }
+}
+
+RadialCollisionGraph.prototype.print = function() {
+  console.log(RadialCollisionGraph.print(this.root, 0));
 }
 
 //// NODE 
@@ -336,8 +377,6 @@ RadialCollisionGraph.test1 = function() {
   F.name = "F";
   F.physics.collision = { radius: 1 };
   F.translate(new THREE.Vector3(-1,0,0));
-
-  // TODO expected result
   
   var graph = new RadialCollisionGraph(
     function(node) { return node.data.physics.collision.radius; },
@@ -353,6 +392,18 @@ RadialCollisionGraph.test1 = function() {
   graph.add(F, false);
   
   graph.build();
+  
+  // A B C E D F
+  console.log(_.map(graph.master, function(node) { return node.data.name; }));
+  
+  graph.print();
+  
+  // Move B out of the way to throw off graph (TODO formal cases)
+  B.translate(new THREE.Vector3(100,0,0));
+  
+  graph.update();
+  
+  graph.print();
   
   return graph;
 }

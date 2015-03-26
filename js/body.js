@@ -129,7 +129,7 @@ Body.prototype.update = function(timedelta) {
     velocityDelta.y,
     velocityDelta.z
   );
-  this.physics.velocity.add(velocityDelta);
+  this.physics.velocity.add(velocityDelta);  
   
   // Update position
   var positionDelta = this.physics.velocity.clone().multiplyScalar(timedelta);
