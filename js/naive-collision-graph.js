@@ -33,7 +33,7 @@ NaiveCollisionGraph.prototype.build = function() {
   //this.debug.compares = 0;
 }
 
-NaiveCollisionGraph.prototype.rebuild = function() {
+NaiveCollisionGraph.prototype.update = function() {
   // We already have all we need: this.master
   //this.debug.nodes = graph.master.length;
   //this.debug.compares = 0;

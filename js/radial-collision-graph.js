@@ -25,30 +25,27 @@
   
   ---
   
-  Currently, the graph is rebuild each frame. It would be more advantageous to move Nodes around the graph when they change, or remove and re-add the node (and its children).
+  Reorganizing graph is dependent on the order things were added. We move around larger objects first to avoid having to swap parents<->children and messing stuff up. Luckily we have RadialCollisionGraph.master, a sorted list of all the nodes.
+  
+  Each node in the master list is associated with other nodes containing the same data (i.e. having different parents, in the PO case). The node in the master list is the original copy and also the copy of the node added first.
+  
+  For each node in the master list, we examine whether it is still colliding with its parent. If it is not fully colliding, it needs to become a sibling of its parent. If it's not colliding at all, the node is removed as a child of its parent and its children become children of its parent. (Inserting children into must be done to keep sorted order.)
+  
+  The children of the children have not been seen in the master list, so their new positions in the graph will be resolved later.
   
 */
 
-var RadialCollisionGraph = function() {
+var RadialCollisionGraph = function(getNodeRadius, partialCollisionTest, fullCollisionTest) {
   this.master = [];
   this.root = new RadialCollisionGraph.Node(null);
   
+  this.dirty = false; // add/remove since last build()?
+  
   //this.debug = { nodes: 0, compares: 0 };
   
-  this._getNodeRadius = function(node) {
-    return node.data.physics.collision.radius;
-  }
-}
-
-  
-RadialCollisionGraph.prototype._partialCollisionTest = function(a, b) {
-  //this.debug.compares++;
-  return Collision.testOverlappingFOI(a.data, b.data);
-}
-  
-RadialCollisionGraph.prototype._fullCollisionTest = function(a, b) {
-  //this.debug.compares++;
-  return Collision.testFullyOverlappingFOI(a.data, b.data);
+  this._getNodeRadius = getNodeRadius;
+  this._partialCollisionTest = partialCollisionTest;
+  this._fullCollisionTest = fullCollisionTest;
 }
 
 RadialCollisionGraph.prototype.add = function(data) {
@@ -64,7 +61,7 @@ RadialCollisionGraph.prototype.add = function(data) {
       return (r === 0.0) ? 0.0 : 1.0/r;
   })
   
-  // TODO insert node into graph?
+  this.dirty = true; // graph requires a rebuild
 }
 
 RadialCollisionGraph.prototype.remove = function(data) {
@@ -75,8 +72,7 @@ RadialCollisionGraph.prototype.remove = function(data) {
     n.data === data;
   });
   
-  // FIXME / TODO -- rebuild vs. remove nodes
-  this.build();
+  this.dirty = true; // graph requires a rebuild
 }
 
 
@@ -92,7 +88,7 @@ RadialCollisionGraph.prototype.build = function() {
   // Insert each node into the empty graph
   _.forEach(graph.master, function(n) {
       // Clear previous associations
-      n.clearParents();
+      n.clearParent();
       n.clearChildren();
       
       // Insert into graph
@@ -107,6 +103,8 @@ RadialCollisionGraph.prototype._insertNode = function(parent, node) {
   
   _.forEach(children, function(child) {
   
+    console.log(child);
+  
     if (graph._partialCollisionTest(child, node)) {
     
       // Recursively add node to children of this child
@@ -120,11 +118,15 @@ RadialCollisionGraph.prototype._insertNode = function(parent, node) {
       }
       else {
         // Partially-overlapping (PO)
-        //  -- duplicate node
+        //  -- duplicate nodeX
         //  -- continue on with siblings
         
-        // Make a copy of [node] (different parent/children, same data)
-        // node = new RadialCollisionGraph.Node(node.data);
+        // Make a copy of [node] (different parent & children, same data)
+        var other = new RadialCollisionGraph.Node(node.data);
+        node.next = other; // link original for ordered access
+        
+        // Use copy of node
+        node = other;
       }
       
     }
@@ -137,19 +139,14 @@ RadialCollisionGraph.prototype._insertNode = function(parent, node) {
   
   // Make node as child of parent
   if (fullyOverlapping !== true) {
-    
-    if (children[parent] === undefined) {
-      children.parent = [];
-    }
-    
-    node.parents.push(parent);
-    children[parent].push(node);
+    node.parent = parent;
+    children.push(node);
   }
 }
 
 RadialCollisionGraph.prototype.traverse = function(callback) {
   var graph = this;
-  _.forEach(graph.root.children[null], function(child) {
+  _.forEach(graph.root.children, function(child) {
       graph._traversalStep(child, child, callback);
   })
 }
@@ -157,7 +154,7 @@ RadialCollisionGraph.prototype.traverse = function(callback) {
 RadialCollisionGraph.prototype._traversalStep = function(top, parent, node, callback) {
   var graph = this;
   
-  _.forEach(node.children[parent], function(child) {
+  _.forEach(node.children, function(child) {
       // Call callback for top<->child pair
       callback(top.data, child.data);
       
@@ -169,25 +166,141 @@ RadialCollisionGraph.prototype._traversalStep = function(top, parent, node, call
   })
 }
 
+
+RadialCollisionGraph.prototype.update = function() {
+  // Perform a complete rebuild if add/remove since last build
+  if (this.dirty === true) {
+    this.build();
+    this.dirty = false;
+    return;
+  }
+
+  //this.build();
+  // TODO rearrange nodes that have moved.
+  /*
+    For each node in the master list (in order):
+    
+      For each parent (in order):
+         
+         1. No longer overlapping?
+            - disassociate node with parent
+            - make all children of node
+              children of the node's parents
+              (insert in order of size)
+            
+         1. Partially overlapping?
+            - make the node a sibling of its
+              parent (insert in order of size,
+              ignore if already there.)
+              
+    Relies on:
+      1. Master and children lists are sorted from larger->smaller
+      2. Nodes are linked together (via .next) from earlier->later added
+  */
+  
+  var that = this;
+  
+  // Go through the master list (in order) and update each node
+  _.foreach(that.master, function(node) {
+
+    // Traverse node's .next chain
+    while (node != null) {
+      
+      var parent = node.parent;
+      
+      // Skip root node as parent
+      if (parent == that.root) {
+        node = node.next;
+        continue;
+      }
+      
+      // Is the node /not/ fully overlapping with parent?
+      if (!that._fullCollisionTest(node, parent)) {
+      
+        // Is the node not /partially/ overlapping with parent?
+        if (!that._partialCollisionTest(node, parent)) {
+          // NO case -- remove from parent
+          
+          // Remove node's parent
+          node.clearParent();
+          
+          // Make children parent's children
+          // -- insert using binary insert
+          _.foreach(node.children, function(child) {
+          
+            var at = _.sortedIndex(parent.children, child, function(item) {
+              var r = graph._getNodeRadius(n);
+              return (r === 0.0) ? 0.0 : 1.0/r;
+            }, that);
+          
+            // Make a child of node's parent
+            parent.children.splice(at, 0, child);
+            
+            // Replace parent
+            child.parent = parent;
+          })
+          
+          node.clearChildren();
+        }
+        else {
+          // PO case -- no special need to do anything (afiact) 
+        }
+        
+        // In both PO and NO case, make the node a sibling of the parent (in order)
+        var grandparent = parent.parent; // (should exist, root node at most)
+        
+        var at = _.sortedIndex(grandparent.children, node, function(item) {
+          var r = graph._getNodeRadius(n);
+          return (r === 0.0) ? 0.0 : 1.0/r;
+        }, that);
+        
+        // Node may already be a child of grandparent (sibling of parent),
+        // in which case `at' should point to it already.
+        // -- it would be the first as it was added to grandparent.children first
+        if (at < grandparent.children.length
+            && grandparent.children[at].data === node.data)
+        {
+          // Already a sibling
+          node.next = grandparent.children[at];
+        }
+        else
+        {
+          // Not a sibling, clone and insert in node.next chain
+          var other = new RadialCollisionGraph.Node(node.data);
+          other.next = node.next;
+          node.next = other;
+          
+          // Use clone
+          node = other;
+          grandparent.children.splice(at, node);
+          node.parent = grandparent;
+        }
+        
+      }
+      
+      // Handle node for next "parent"
+      node = node.next;
+    }
+    
+  })
+  
+}
+
 //// NODE 
 
 RadialCollisionGraph.Node = function(obj) {
   this.data = obj;
-  this.parents = [];
+  this.parent = null;
   this.children = [];
-  this.visitedFlag = false;
+  this.next = null; // if a copy is made, next points to the copy (different parent & children, but same data)
 }
 
-RadialCollisionGraph.Node.prototype.clearParents = function() {
-  this.parents.splice(0, this.parents.length);
+RadialCollisionGraph.Node.prototype.clearParent = function() {
+  this.parent = null;
 }
 
 RadialCollisionGraph.Node.prototype.clearChildren = function() {
-  var children = {}; // FIXME slow?
-}
-
-RadialCollisionGraph.prototype.rebuild = function() {
-  
+  this.children.splice(0, this.children.length);
 }
 
 //// TESTS
@@ -226,14 +339,20 @@ RadialCollisionGraph.test1 = function() {
 
   // TODO expected result
   
-  var graph = new RadialCollisionGraph();
+  var graph = new RadialCollisionGraph(
+    function(node) { return node.data.physics.collision.radius; },
+    Collision.testOverlappingFOI,
+    Collision.testFullyOverlappingFOI
+  );
   
-  graph.add(A);
-  graph.add(B);
-  graph.add(C);
-  graph.add(D);
-  graph.add(E);
-  graph.add(F);
+  graph.add(A, false);
+  graph.add(B, false);
+  graph.add(C, false);
+  graph.add(D, false);
+  graph.add(E, false);
+  graph.add(F, false);
+  
+  graph.build();
   
   return graph;
 }

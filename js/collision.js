@@ -1,10 +1,16 @@
 // TODO Forces in global space???
 
 Collision = function() {
-  this.bodies = [];
+  // Callback to map node->radius for RadialCollisionGraph
+  var getNodeCollisionRadius = function(node) {
+    return node.data.physics.collision.radius;
+  }
   
-  this.graph = new RadialCollisionGraph();
-  //this.graph = new NaiveCollisionGraph();
+  // Use the "complicated" (i.e. not necessarily more optimal)
+  // RadialCollisionGraph for collisions.
+  this.graph = new RadialCollisionGraph(getNodeCollisionRadius,
+                                        Collision.testOverlappingFOI,
+                                        Collision.testFullyOverlappingFOI);
 }
 
 /**
@@ -84,12 +90,8 @@ Collision.prototype.testFullyOverlappingFOI = Collision.testFullyOverlappingFOI;
  * Update collision resolver.
  */
 Collision.prototype.update = function(timedelta) {
-  var that = this;
-  
-  //this.graph.build(); // FIXME TODO rebuilding graph every frame is performant?
-  this.graph.rebuild();
-  
   // Apply body forces/constraints to colliding objects
+  var that = this;
   this.graph.traverse(function(a, b) {
     that.performCollisionConstraints(a, b);
   })

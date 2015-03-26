@@ -1,9 +1,19 @@
 /**
  * Handles gravity and body interactions.
  */
-Gravity = function(G) {
+Gravity = function(G, graph) {
   this.G = G || 100.0;
-  this.bodies = [];
+  
+  // Callback to map node->radius for RadialCollisionGraph
+  var getNodeCollisionRadius = function(node) {
+    return node.data.physics.gravity.interactionRadius;
+  }
+  
+  // Use the "complicated" (i.e. not necessarily more optimal)
+  // RadialCollisionGraph for collisions.
+  this.graph = new RadialCollisionGraph(getNodeCollisionRadius,
+                                        this.testOverlappingFOI,
+                                        this.testFullyOverlappingFOI);
 }
 
 /**
@@ -24,7 +34,7 @@ Gravity.prototype.applyBodyForces = function(a, b) {
 /**
  * Determine whether two objects are within each other's interacting range.
  */
-Gravity.prototype.inInteractionRange = function(a, b) {
+Gravity.prototype.testOverlappingFOI = function(a, b) {
   var distance = a.physics.position.distanceTo(b.physics.position);
   var maximumDistance = a.physics.gravity.interactionRadius
                         + b.physics.gravity.interactionRadius;
@@ -32,70 +42,43 @@ Gravity.prototype.inInteractionRange = function(a, b) {
   return distance <= maximumDistance;
 }
 
-Gravity.prototype.findInteractingBodies = function(bodies){
-  var visitedFrom = [];
-  var pairs = [];
-  var that = this;
-  
-  // Find interacting bodies the dumb way
-  // 1. for each body, test against all other bodies
-  // 2. skip bodies in inner loop that were seen in outer loop
-  _.forEach(bodies, function(bodyFrom) {
-    // Start remembering who we visited from [bodyFrom]
-    visitedFrom.push(bodyFrom);
-    
-    // Skip body if no gravity present
-    if (bodyFrom.physics.gravity === undefined) {
-      return;
-    }
-    
-    _.forEach(bodies, function(bodyTo) {
-      // Skip body if no gravity present
-      if (bodyTo.physics.gravity === undefined) {
-        return;
-      }
-      
-      // Have we seen this pair before?
-      if (_.contains(visitedFrom, bodyTo) === false) {
-        // We have not seen this pair before. Test interaction.
-        if (that.inInteractionRange(bodyTo, bodyFrom)) {
-           // Interacting pair, remember pair
-           pairs.push([bodyTo, bodyFrom]);
-        }
-      }
-    }); 
-  });
-  
-  return pairs;
+/**
+ * Determine whether one object is fully contained by the other.
+ */
+Gravity.prototype.testFullyOverlappingFOI = function(a, b) {
+    return a.physics.position.distanceTo(b.physics.position)
+             <= Math.abs(a.physics.gravity.interactionRadius - b.physics.gravity.interactionRadius); 
 }
 
 /**
  * Finds interacting bodies in [bodies] and applies gravitational force
  * to each interacting pair.
- * \see Gravity.findInteractingBodies
  * \see Gravity.applyBodyForces
  */
 Gravity.prototype.update = function(timedelta) {
-  var that = this;
+  // Update the graph
+  this.graph.update();
+  //this.graph.build(); // brute-force update
   
-  // Apply body forces between interacting objects
-  _.forEach(this.findInteractingBodies(this.bodies), function(pair) {
-    that.applyBodyForces(pair[0], pair[1]);
-  });
+  // Apply body forces to interacting objects
+  var that = this;
+  this.graph.traverse(function(a, b) {
+    that.applyBodyForces(a, b);
+  })
 }
 
 /**
  * Put [body] under the guise of this Gravity object.
  */
 Gravity.prototype.add = function(body) {
-  this.bodies = _.union(this.bodies, [body]);
+  this.graph.add(body);
 }
 
 /**
  * Remove [body] from the guise of this Gravity object.
  */
 Gravity.prototype.remove = function(body) {
-  this.bodies = _.difference(this.bodies, [body]);
+  this.graph.remove(body);
 }
 
 Gravity.getOptions = function(radius) {
