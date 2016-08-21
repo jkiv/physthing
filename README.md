@@ -1,7 +1,7 @@
 physthing
 =========
 
-![Project status: active](https://img.shields.io/badge/project status-active-green.svg)
+![Project status: abandoned](https://img.shields.io/badge/project status-abandonded-red.svg)
 
 A little physics-based space game in Javascript and WebGL.
 
